@@ -1,0 +1,26 @@
+--cpu Cortex-M3
+"allinonelogger_v1\stm32f1xx_hal_spi_ex.o"
+"allinonelogger_v1\stm32f1xx_hal_i2c.o"
+"allinonelogger_v1\stm32f1xx_hal_cortex.o"
+"allinonelogger_v1\stm32f1xx_hal_rcc.o"
+"allinonelogger_v1\stm32f1xx_hal_flash_ex.o"
+"allinonelogger_v1\stm32f1xx_hal_tim.o"
+"allinonelogger_v1\stm32f1xx_hal_spi.o"
+"allinonelogger_v1\stm32f1xx_hal_gpio_ex.o"
+"allinonelogger_v1\stm32f1xx_hal_gpio.o"
+"allinonelogger_v1\stm32f1xx_hal_uart.o"
+"allinonelogger_v1\stm32f1xx_hal_rcc_ex.o"
+"allinonelogger_v1\stm32f1xx_hal_pwr.o"
+"allinonelogger_v1\stm32f1xx_hal_tim_ex.o"
+"allinonelogger_v1\stm32f1xx_hal.o"
+"allinonelogger_v1\stm32f1xx_hal_dma.o"
+"allinonelogger_v1\stm32f1xx_hal_flash.o"
+"allinonelogger_v1\system_stm32f1xx.o"
+"allinonelogger_v1\startup_stm32f103xb.o"
+"allinonelogger_v1\main.o"
+"allinonelogger_v1\stm32f1xx_hal_msp.o"
+"allinonelogger_v1\stm32f1xx_it.o"
+--library_type=microlib --strict --scatter "allInOneLogger_V1\allInOneLogger_V1.sct"
+--diag_suppress=L6329 --summary_stderr --info summarysizes --map --xref --callgraph --symbols
+--info sizes --info totals --info unused --info veneers
+--list "allInOneLogger_V1.map" -o allInOneLogger_V1\allInOneLogger_V1.axf
