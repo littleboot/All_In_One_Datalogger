@@ -33,11 +33,12 @@
 	* -Add filled background image nextion display use progress bar to manipulate image (crop) and show icons filling based on there values
 	* -Check bounds humidity sensor (check datsheet) bound between 0 and 100
 	* -Save and recall variables from EEPROM Like thingsspeak channel key
-	* -
+	* -Add fucntion that gets temp from previous humidity measurement to speed up the code
 	* 
-	* TO DO:
+	* TO DO Later:
 	* -add firmware version to settings->about screen
-	* 
+	* -increase clock speed
+	*
 	* Bugs:
 	* When I2C is busy and SDA is disconnected and reconnected. transmit and receive I2c functions return HAL_TIMEOUT and do nothing else. Need debugger to fix this
 	*
@@ -52,13 +53,13 @@
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
-I2C_HandleTypeDef hi2c1;
+I2C_HandleTypeDef hi2c1; //1 bus slave: SI7021
 
-SPI_HandleTypeDef hspi1;
+SPI_HandleTypeDef hspi1; //#will be connected to ESP8266 and possably external ADC's for PH en EC circuitry
 
-UART_HandleTypeDef huart1;
-UART_HandleTypeDef huart2;
-UART_HandleTypeDef huart3;
+UART_HandleTypeDef huart1; //Connected to PC with serial USB converter
+UART_HandleTypeDef huart2;  //Connected to MHZ19 CO2 sensor module
+UART_HandleTypeDef huart3; //Connected to Nextion touch display
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
@@ -102,6 +103,7 @@ PUTCHAR_PROTOTYPE
 
 float si7021_get_temperature(void);
 int si7021_get_humidity(void);
+void update_display_sensordata(void);
 
 //float si7021_get_temp_from_RH(void);
 
@@ -142,29 +144,15 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-		///Blink LED
+		///Blink LED, Used to check if MCU isn't stuck in a long loop
 		HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13); //LED toggle
 		HAL_Delay(1000);
-	
+
 		//printf("Test UART1 baud=115200\r\n");
 		
+		update_display_sensordata();
 
-		
-		float temp = si7021_get_temperature();
-		int RH = si7021_get_humidity();
-		printf("Temperature: %.1f C \t Humidity: %d %%\n", temp, RH); //%% escape for %
-		
-		char buffer[80];
-		sprintf(buffer,"t1.txt=\"%.1f C\"ÿÿÿt2.txt=\"%d %%\"ÿÿÿ",temp, RH); //t2.txt="Tom"ÿÿÿ
-		int len = strlen(buffer);
-		
-		HAL_UART_Transmit(&huart3, (uint8_t *)buffer, len, 1000);
-		
-		
-		
-		
-		
-		
+	
 		
   /* USER CODE END WHILE */
 
@@ -374,6 +362,19 @@ int si7021_get_humidity(void)
 	return ((125*RHCode)/65536)-6;
 }
 
+void update_display_sensordata(void)
+{
+	///Get sensor data from sensors
+	float temp = si7021_get_temperature();
+	int RH = si7021_get_humidity();
+	//printf("Temperature: %.1f C \t Humidity: %d %%\n", temp, RH); //Debug; %% escape for %
+	
+	char buffer[80]; //stores string to be send
+	sprintf(buffer,"t1.txt=\"%.1f C\"ÿÿÿt2.txt=\"%d %%\"ÿÿÿ",temp, RH); //Example: t2.txt="Tom"ÿÿÿ
+	int len = strlen(buffer);
+	
+	HAL_UART_Transmit(&huart3, (uint8_t *)buffer, len, 1000); //Send commands to nextion display
+}
 
 /* USER CODE END 4 */
 
