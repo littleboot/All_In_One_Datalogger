@@ -496,12 +496,12 @@ ARM Macro Assembler    Page 8
               00000000 
 Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M3 --apcs=interw
 ork --depend=allinonelogger_v1\startup_stm32f103xb.d -oallinonelogger_v1\startu
-p_stm32f103xb.o -I"C:\Users\Tom\Desktop\All in one Datalogger\Firmware\allInOne
-Logger_V1\MDK-ARM\RTE" -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.0.0-Beta4\CMSIS\Includ
-e -IC:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\2.1.0\Device\Include --predefine="__
-EVAL SETA 1" --predefine="__MICROLIB SETA 1" --predefine="__UVISION_VERSION SET
-A 520" --predefine="_RTE_ SETA 1" --predefine="STM32F10X_MD SETA 1" --list=star
-tup_stm32f103xb.lst startup_stm32f103xb.s
+p_stm32f103xb.o -IC:\Users\Tom\Documents\GitHub\All_In_One_Datalogger\Firmware\
+allInOneLogger_V1\MDK-ARM\RTE -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.0.0-Beta4\CMSIS
+\Include -IC:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\2.1.0\Device\Include --predef
+ine="__EVAL SETA 1" --predefine="__MICROLIB SETA 1" --predefine="__UVISION_VERS
+ION SETA 520" --predefine="_RTE_ SETA 1" --predefine="STM32F10X_MD SETA 1" --li
+st=startup_stm32f103xb.lst startup_stm32f103xb.s
 
 
 
