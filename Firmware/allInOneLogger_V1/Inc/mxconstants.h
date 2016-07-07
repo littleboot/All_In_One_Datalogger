@@ -43,6 +43,8 @@
 
 #define DEV_BOARD_LED_Pin GPIO_PIN_13
 #define DEV_BOARD_LED_GPIO_Port GPIOC
+#define LDR_light_sensor_Pin GPIO_PIN_1
+#define LDR_light_sensor_GPIO_Port GPIOA
 #define CS_ESP8266_Pin GPIO_PIN_4
 #define CS_ESP8266_GPIO_Port GPIOA
 #define RST_ESP8266_Pin GPIO_PIN_8

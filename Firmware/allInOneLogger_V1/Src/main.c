@@ -41,6 +41,8 @@
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
+ADC_HandleTypeDef hadc1;
+
 I2C_HandleTypeDef hi2c1;
 
 RTC_HandleTypeDef hrtc;
@@ -69,6 +71,7 @@ static void MX_USART1_UART_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_RTC_Init(void);
+static void MX_ADC1_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
@@ -115,6 +118,7 @@ void update_display_sensordata(void);
 	* -Check bounds humidity sensor (check datsheet) bound between 0 and 100
 	* -Save and recall variables from EEPROM Like thingsspeak channel key
 	* -Add fucntion that gets temp from previous humidity measurement to speed up the code
+	* -After power on the CO2 sensor shows wrong values. show dots the first 2 minutes at CO2 level istead of wrong values
 	* 
 	* TO DO Later:
 	* -Add option to configure dark and light voltage levels LDR
@@ -124,7 +128,7 @@ void update_display_sensordata(void);
 	*
 	* Bugs:
 	* When I2C is busy and SDA is disconnected and reconnected. transmit and receive I2c functions return HAL_TIMEOUT and do nothing else. Need debugger to fix this
-	* Some times CO2 sensor is stuck at high value like 3546. resetting doesn't work reuploading code does work. have no clue how this problem is caused. Need debugger
+	* Some times CO2 sensor is stuck at high value like 3546. Problem is caused after power on 
 	*/
 /* USER CODE END 0 */
 
@@ -151,6 +155,7 @@ int main(void)
   MX_USART2_UART_Init();
   MX_USART3_UART_Init();
   MX_RTC_Init();
+  MX_ADC1_Init();
 
   /* USER CODE BEGIN 2 */
 	///Configure RTC
@@ -165,6 +170,8 @@ int main(void)
 	HAL_RTC_SetTime(&hrtc,&time,RTC_FORMAT_BIN);
 	HAL_RTC_SetDate(&hrtc,&date,RTC_FORMAT_BIN);
 	
+	HAL_Delay(3000); //Delay to prevent CO2 sensor at startup from doing wierd stuff.
+	
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -173,10 +180,15 @@ int main(void)
   {
 		///Blink LED, Used to check if MCU isn't stuck in a long loop
 		HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13); //LED toggle
-		//HAL_Delay(1000);
 		
 		update_display_sensordata(); //Updates display sensor values, at this moment only temp RH and CO2
 		update_display_time(); //Updates the time on the display
+		
+		HAL_ADC_Start(&hadc1);
+		HAL_ADC_PollForConversion(&hadc1, 1000);
+		uint32_t ldr = HAL_ADC_GetValue(&hadc1);
+		printf("LDR: %d %%\n",map(ldr, 300, 3500, 0, 100));
+		HAL_ADC_Stop(&hadc1);
 		
   /* USER CODE END WHILE */
 
@@ -216,8 +228,9 @@ void SystemClock_Config(void)
     Error_Handler();
   }
 
-  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_RTC;
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_RTC|RCC_PERIPHCLK_ADC;
   PeriphClkInit.RTCClockSelection = RCC_RTCCLKSOURCE_LSI;
+  PeriphClkInit.AdcClockSelection = RCC_ADCPCLK2_DIV2;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     Error_Handler();
@@ -229,6 +242,38 @@ void SystemClock_Config(void)
 
   /* SysTick_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
+}
+
+/* ADC1 init function */
+static void MX_ADC1_Init(void)
+{
+
+  ADC_ChannelConfTypeDef sConfig;
+
+    /**Common config 
+    */
+  hadc1.Instance = ADC1;
+  hadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;
+  hadc1.Init.ContinuousConvMode = DISABLE;
+  hadc1.Init.DiscontinuousConvMode = DISABLE;
+  hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
+  hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
+  hadc1.Init.NbrOfConversion = 1;
+  if (HAL_ADC_Init(&hadc1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+    /**Configure Regular Channel 
+    */
+  sConfig.Channel = ADC_CHANNEL_1;
+  sConfig.Rank = 1;
+  sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
 }
 
 /* I2C1 init function */
@@ -409,6 +454,8 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 int map(int x, int in_min, int in_max, int out_min, int out_max)
 {
+	if(x < in_min) return out_min;
+	if(x > in_max) return out_max;
   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
