@@ -105,6 +105,8 @@ int get_humidity(void);
 float get_temp_from_RH(void); //Not implemented yet
 int get_CO2(void);
 
+int get_lightlevel(void);
+
 void update_display_time(void);
 void update_display_sensordata(void);
 
@@ -183,12 +185,6 @@ int main(void)
 		
 		update_display_sensordata(); //Updates display sensor values, at this moment only temp RH and CO2
 		update_display_time(); //Updates the time on the display
-		
-		HAL_ADC_Start(&hadc1);
-		HAL_ADC_PollForConversion(&hadc1, 1000);
-		uint32_t ldr = HAL_ADC_GetValue(&hadc1);
-		printf("LDR: %d %%\n",map(ldr, 300, 3500, 0, 100));
-		HAL_ADC_Stop(&hadc1);
 		
   /* USER CODE END WHILE */
 
@@ -499,15 +495,25 @@ int get_CO2(void)
 	return ppm;
 }
 
+int get_lightlevel()
+{
+	HAL_ADC_Start(&hadc1);
+	HAL_ADC_PollForConversion(&hadc1, 1000);
+	uint32_t ldr = HAL_ADC_GetValue(&hadc1);
+	HAL_ADC_Stop(&hadc1);
+	return map(ldr, 300, 3500, 0, 100);
+}
+
 void update_display_sensordata(void)
 {
 	///Get sensor data from sensors
 	float temp = get_temperature();
 	int RH = get_humidity();
 	int CO2 = get_CO2();
+	int ldr = get_lightlevel();
 	
 	char buffer[120]; //stores string to be send
-	sprintf(buffer,"t1.txt=\"%.1f C\"ÿÿÿt2.txt=\"%d %%\"ÿÿÿt3.txt=\"%d ppm\"ÿÿÿ",temp, RH, CO2); //Example: t2.txt="Tom"ÿÿÿ
+	sprintf(buffer,"t1.txt=\"%.1f C\"ÿÿÿt2.txt=\"%d %%\"ÿÿÿt3.txt=\"%d ppm\"ÿÿÿt4.txt=\"%d %%\"ÿÿÿ",temp, RH, CO2, ldr); //Example: t2.txt="Tom"ÿÿÿ
 	int len = strlen(buffer);
 	
 	HAL_UART_Transmit(&huart3, (uint8_t *)buffer, len, 1000); //Send commands to nextion display
