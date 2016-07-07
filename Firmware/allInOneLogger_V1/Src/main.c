@@ -97,9 +97,11 @@ PUTCHAR_PROTOTYPE
 
 float get_temperature(void);
 int get_humidity(void);
-void update_display_sensordata(void);
-float si7021_get_temp_from_RH(void); //Not implemented yet
+float get_temp_from_RH(void); //Not implemented yet
 int get_CO2(void);
+
+void update_display_time(void);
+void update_display_sensordata(void);
 
 /* USER CODE END PFP */
 
@@ -146,8 +148,7 @@ int main(void)
   MX_RTC_Init();
 
   /* USER CODE BEGIN 2 */
-	time.Hours = 16;
-	time.Minutes = 13;
+	///Configure RTC
 	time.Seconds = 0;
 	date.WeekDay = RTC_WEEKDAY_THURSDAY;
 	date.Date = 7;
@@ -165,15 +166,10 @@ int main(void)
   {
 		///Blink LED, Used to check if MCU isn't stuck in a long loop
 		HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13); //LED toggle
-		HAL_Delay(1000);
+		//HAL_Delay(1000);
 		
 		update_display_sensordata(); //Updates display sensor values, at this moment only temp RH and CO2
-		
-		RTC_TimeTypeDef currentTime;
-		HAL_RTC_GetTime(&hrtc, &currentTime,RTC_FORMAT_BIN);
-		
-		printf("%d:%d:%d\n",currentTime.Hours, currentTime.Minutes, currentTime.Seconds);
-		
+		update_display_time(); //Updates the time on the display
 		
   /* USER CODE END WHILE */
 
@@ -457,6 +453,23 @@ void update_display_sensordata(void)
 	int len = strlen(buffer);
 	
 	HAL_UART_Transmit(&huart3, (uint8_t *)buffer, len, 1000); //Send commands to nextion display
+}
+
+void update_display_time()
+{
+	RTC_TimeTypeDef currentTime; //store time returned from the RTC
+	HAL_RTC_GetTime(&hrtc, &currentTime,RTC_FORMAT_BIN); //get time from RTC and store in above variable
+	
+	char buffer[40]; //stores string to be send
+	
+	if(currentTime.Seconds%2 == 0) //display : when seconds are even
+	{
+	}else {
+	}
+
+	int len = strlen(buffer);
+	
+	HAL_UART_Transmit(&huart3, (uint8_t *)buffer, len, 1000); //Send commands to nextion display	
 }
 
 /* USER CODE END 4 */
