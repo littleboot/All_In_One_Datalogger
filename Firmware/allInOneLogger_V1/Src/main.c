@@ -149,6 +149,8 @@ int main(void)
 
   /* USER CODE BEGIN 2 */
 	///Configure RTC
+	time.Hours = 18;
+	time.Minutes = 9;
 	time.Seconds = 0;
 	date.WeekDay = RTC_WEEKDAY_THURSDAY;
 	date.Date = 7;
@@ -464,7 +466,9 @@ void update_display_time()
 	
 	if(currentTime.Seconds%2 == 0) //display : when seconds are even
 	{
+		sprintf(buffer,"t0.txt=\"%d:%02d\"ÿÿÿ",currentTime.Hours, currentTime.Minutes); // %02d is format printf so the minutes always consists of two numbers starting with zero's
 	}else {
+		sprintf(buffer,"t0.txt=\"%d %02d\"ÿÿÿ",currentTime.Hours, currentTime.Minutes); 
 	}
 
 	int len = strlen(buffer);
