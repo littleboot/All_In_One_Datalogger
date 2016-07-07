@@ -46,11 +46,7 @@ Network Trash Folder
 Temporary Items
 .apdisk
 <<<<<<< HEAD
-Firmware/allInOneLogger_V1/MDK-ARM/allInOneLogger_V1.uvguix.Tom
-Firmware/allInOneLogger_V1/MDK-ARM/allInOneLogger_V1.uvguix.Tom
+Firmware/allInOneLogger_V1/MDK-ARM/*
 =======
 
-#Keil mdk unessesary files
-Firmware\allInOneLogger_V1\MDK-ARM
-Firmware\allInOneLogger_V1\Drivers
 >>>>>>> origin/master
