@@ -29,19 +29,6 @@
   * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   *
   ******************************************************************************
-	* TO DO:
-	* -Add filled background image nextion display use progress bar to manipulate image (crop) and show icons filling based on there values
-	* -Check bounds humidity sensor (check datsheet) bound between 0 and 100
-	* -Save and recall variables from EEPROM Like thingsspeak channel key
-	* -Add fucntion that gets temp from previous humidity measurement to speed up the code
-	* 
-	* TO DO Later:
-	* -add firmware version to settings->about screen
-	* -increase clock speed
-	*
-	* Bugs:
-	* When I2C is busy and SDA is disconnected and reconnected. transmit and receive I2c functions return HAL_TIMEOUT and do nothing else. Need debugger to fix this
-	*
   */
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f1xx_hal.h"
@@ -53,13 +40,13 @@
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
-I2C_HandleTypeDef hi2c1; //1 bus slave: SI7021
+I2C_HandleTypeDef hi2c1;
 
-SPI_HandleTypeDef hspi1; //#will be connected to ESP8266 and possably external ADC's for PH en EC circuitry
+SPI_HandleTypeDef hspi1;
 
-UART_HandleTypeDef huart1; //Connected to PC with serial USB converter
-UART_HandleTypeDef huart2;  //Connected to MHZ19 CO2 sensor module
-UART_HandleTypeDef huart3; //Connected to Nextion touch display
+UART_HandleTypeDef huart1;
+UART_HandleTypeDef huart2;
+UART_HandleTypeDef huart3;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
@@ -104,18 +91,30 @@ PUTCHAR_PROTOTYPE
 float si7021_get_temperature(void);
 int si7021_get_humidity(void);
 void update_display_sensordata(void);
-
-//float si7021_get_temp_from_RH(void);
+//float si7021_get_temp_from_RH(void); //Not implemented yet
 
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
-
+/**
+	* TO DO:
+	* -Add filled background image nextion display use progress bar to manipulate image (crop) and show icons filling based on there values
+	* -Check bounds humidity sensor (check datsheet) bound between 0 and 100
+	* -Save and recall variables from EEPROM Like thingsspeak channel key
+	* -Add fucntion that gets temp from previous humidity measurement to speed up the code
+	* 
+	* TO DO Later:
+	* -add firmware version to settings->about screen
+	* -increase clock speed
+	*
+	* Bugs:
+	* When I2C is busy and SDA is disconnected and reconnected. transmit and receive I2c functions return HAL_TIMEOUT and do nothing else. Need debugger to fix this
+	*
+	*/
 /* USER CODE END 0 */
 
 int main(void)
 {
-
   /* USER CODE BEGIN 1 */
 
   /* USER CODE END 1 */
@@ -157,7 +156,6 @@ int main(void)
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
-
   }
   /* USER CODE END 3 */
 
@@ -266,7 +264,7 @@ static void MX_USART2_UART_Init(void)
 {
 
   huart2.Instance = USART2;
-  huart2.Init.BaudRate = 115200;
+  huart2.Init.BaudRate = 9600;
   huart2.Init.WordLength = UART_WORDLENGTH_8B;
   huart2.Init.StopBits = UART_STOPBITS_1;
   huart2.Init.Parity = UART_PARITY_NONE;
