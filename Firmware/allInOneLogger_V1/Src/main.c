@@ -152,7 +152,7 @@ int main(void)
 		
 		update_display_sensordata();
 
-	
+		
 		
   /* USER CODE END WHILE */
 
