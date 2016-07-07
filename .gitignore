@@ -19,5 +19,5 @@ $RECYCLE.BIN/
 *.lnk
 
 #exclude Keil MDK project files
-/Firmware/allInOneLogger_V1/MDK-ARM/
+/Firmware/allInOneLogger_V1/MDK-ARM
 /Firmware/allInOneLogger_V1/Drivers
