@@ -95,6 +95,8 @@ PUTCHAR_PROTOTYPE
 	return ch;
 }
 
+int map(int x, int in_min, int in_max, int out_min, int out_max);
+
 float get_temperature(void);
 int get_humidity(void);
 float get_temp_from_RH(void); //Not implemented yet
@@ -108,18 +110,21 @@ void update_display_sensordata(void);
 /* USER CODE BEGIN 0 */
 /**
 	* TO DO:
+	* -RTC configure time once. and use battery to continue RTC when powered off
 	* -Add filled background image nextion display use progress bar to manipulate image (crop) and show icons filling based on there values
 	* -Check bounds humidity sensor (check datsheet) bound between 0 and 100
 	* -Save and recall variables from EEPROM Like thingsspeak channel key
 	* -Add fucntion that gets temp from previous humidity measurement to speed up the code
 	* 
 	* TO DO Later:
-	* -add firmware version to settings->about screen
+	* -Add option to configure dark and light voltage levels LDR
+	* -Add option to implement offset to CO2 level @Display
+	* -add firmware version to settings->about screen @display
 	* -increase clock speed (if necessary)
 	*
 	* Bugs:
 	* When I2C is busy and SDA is disconnected and reconnected. transmit and receive I2c functions return HAL_TIMEOUT and do nothing else. Need debugger to fix this
-	*
+	* Some times CO2 sensor is stuck at high value like 3546. resetting doesn't work reuploading code does work. have no clue how this problem is caused. Need debugger
 	*/
 /* USER CODE END 0 */
 
@@ -150,7 +155,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
 	///Configure RTC
 	time.Hours = 18;
-	time.Minutes = 9;
+	time.Minutes = 43;
 	time.Seconds = 0;
 	date.WeekDay = RTC_WEEKDAY_THURSDAY;
 	date.Date = 7;
@@ -402,6 +407,10 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+int map(int x, int in_min, int in_max, int out_min, int out_max)
+{
+  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
 
 float get_temperature(void)
 {
@@ -432,12 +441,12 @@ int get_CO2(void)
 	uint8_t cmd[9] = {0xFF,0x01,0x86,0x00,0x00,0x00,0x00,0x00,0x79}; //Starting byte fixed; sensor no.; Get gas concentration cmd; ; ; ; ; ; ;check value;
 	uint8_t response[9]; // stores received data
 			
-	HAL_UART_Transmit(&huart2, cmd, 9, 1000); //Send commands to MHZ-19 Co2 sensor
-	HAL_UART_Receive(&huart2, response, 9, 1000); //save response to response buffer
+	HAL_UART_Transmit(&huart2, cmd, 9, 2000); //Send commands to MHZ-19 Co2 sensor
+	HAL_UART_Receive(&huart2, response, 9, 2000); //save response to response buffer
 	
 	int responseHigh = (int)response[2];
 	int responseLow = (int)response[3];
-	int ppm = (256*responseHigh)+responseLow; //convert to ppm
+	int ppm = ((256*responseHigh)+responseLow); //convert to ppm
 	//printf("ppm: %d\n", ppm); //Debug
 	
 	return ppm;
