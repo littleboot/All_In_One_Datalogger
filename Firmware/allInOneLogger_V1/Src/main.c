@@ -36,6 +36,7 @@
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
 
 /* USER CODE END Includes */
 
@@ -88,10 +89,12 @@ PUTCHAR_PROTOTYPE
 	return ch;
 }
 
-float si7021_get_temperature(void);
-int si7021_get_humidity(void);
+float get_temperature(void);
+int get_humidity(void);
 void update_display_sensordata(void);
 //float si7021_get_temp_from_RH(void); //Not implemented yet
+
+int get_CO2(void);
 
 /* USER CODE END PFP */
 
@@ -149,24 +152,7 @@ int main(void)
 
 		//printf("Test UART1 baud=115200\r\n");
 		
-		update_display_sensordata(); //Updates display sensor values, at this moment only temp and RH
-		
-		uint8_t cmd[9] = {0xFF,0x01,0x86,0x00,0x00,0x00,0x00,0x00,0x79}; //Starting byte fixed; sensor no.; Get gas concentration cmd; ; ; ; ; ; ;check value;
-		uint8_t response[9]; // stores received data
-				
-		HAL_UART_Transmit(&huart2, cmd, 9, 1000); //Send commands to nextion display
-		HAL_UART_Receive(&huart2, response, 9, 2000); //save response to response buffer
-		
-		int responseHigh = (int) response[2];
-		int responseLow = (int) response[3];
-		int ppm = (256*responseHigh)+responseLow;
-		
-		char buffer[80]; //stores string to be send
-		sprintf(buffer,"t3.txt=\"%d ppm\"ÿÿÿ", ppm); //Example: t2.txt="Tom"ÿÿÿ
-		int len = strlen(buffer);
-		HAL_UART_Transmit(&huart3, (uint8_t *)buffer, len, 1000); //Send commands to nextion display
-		
-    printf("ppm: %d\n", ppm);
+		update_display_sensordata(); //Updates display sensor values, at this moment only temp RH and CO2
 		
   /* USER CODE END WHILE */
 
@@ -351,7 +337,7 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
-float si7021_get_temperature(void)
+float get_temperature(void)
 {
 	//Variables needed
 	uint8_t cmd = 0xE3;
@@ -363,7 +349,7 @@ float si7021_get_temperature(void)
 	return ((175.72*tempCode)/65536)-46.85;
 }
 
-int si7021_get_humidity(void)
+int get_humidity(void)
 {
 	//Variables needed
 	uint8_t cmd = 0xE5;
@@ -375,15 +361,31 @@ int si7021_get_humidity(void)
 	return ((125*RHCode)/65536)-6;
 }
 
+int get_CO2(void)
+{
+	uint8_t cmd[9] = {0xFF,0x01,0x86,0x00,0x00,0x00,0x00,0x00,0x79}; //Starting byte fixed; sensor no.; Get gas concentration cmd; ; ; ; ; ; ;check value;
+	uint8_t response[9]; // stores received data
+			
+	HAL_UART_Transmit(&huart2, cmd, 9, 1000); //Send commands to MHZ-19 Co2 sensor
+	HAL_UART_Receive(&huart2, response, 9, 1000); //save response to response buffer
+	
+	int responseHigh = (int)response[2];
+	int responseLow = (int)response[3];
+	int ppm = (256*responseHigh)+responseLow; //convert to ppm
+	//printf("ppm: %d\n", ppm); //Debug
+	
+	return ppm;
+}
+
 void update_display_sensordata(void)
 {
 	///Get sensor data from sensors
-	float temp = si7021_get_temperature();
-	int RH = si7021_get_humidity();
-	//printf("Temperature: %.1f C \t Humidity: %d %%\n", temp, RH); //Debug; %% escape for %
+	float temp = get_temperature();
+	int RH = get_humidity();
+	int CO2 = get_CO2();
 	
-	char buffer[80]; //stores string to be send
-	sprintf(buffer,"t1.txt=\"%.1f C\"ÿÿÿt2.txt=\"%d %%\"ÿÿÿ",temp, RH); //Example: t2.txt="Tom"ÿÿÿ
+	char buffer[120]; //stores string to be send
+	sprintf(buffer,"t1.txt=\"%.1f C\"ÿÿÿt2.txt=\"%d %%\"ÿÿÿt3.txt=\"%d ppm\"ÿÿÿ",temp, RH, CO2); //Example: t2.txt="Tom"ÿÿÿ
 	int len = strlen(buffer);
 	
 	HAL_UART_Transmit(&huart3, (uint8_t *)buffer, len, 1000); //Send commands to nextion display
