@@ -146,7 +146,16 @@ int main(void)
   MX_RTC_Init();
 
   /* USER CODE BEGIN 2 */
-	//HAL_RTC_SetTime(&hrtc,&time,1);
+	time.Hours = 16;
+	time.Minutes = 13;
+	time.Seconds = 0;
+	date.WeekDay = RTC_WEEKDAY_THURSDAY;
+	date.Date = 7;
+	date.Month = RTC_MONTH_JULY;
+	date.Year = 16;
+	
+	HAL_RTC_SetTime(&hrtc,&time,RTC_FORMAT_BIN);
+	HAL_RTC_SetDate(&hrtc,&date,RTC_FORMAT_BIN);
 	
   /* USER CODE END 2 */
 
@@ -160,7 +169,10 @@ int main(void)
 		
 		update_display_sensordata(); //Updates display sensor values, at this moment only temp RH and CO2
 		
+		RTC_TimeTypeDef currentTime;
+		HAL_RTC_GetTime(&hrtc, &currentTime,RTC_FORMAT_BIN);
 		
+		printf("%d:%d:%d\n",currentTime.Hours, currentTime.Minutes, currentTime.Seconds);
 		
 		
   /* USER CODE END WHILE */
