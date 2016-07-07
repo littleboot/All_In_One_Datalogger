@@ -1,3 +1,4 @@
+### Windows ###
 # Windows image file caches
 Thumbs.db
 ehthumbs.db
@@ -17,36 +18,6 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
-# =========================
-# Operating System Files
-# =========================
-
-# OSX
-# =========================
-
-.DS_Store
-.AppleDouble
-.LSOverride
-
-# Thumbnails
-._*
-
-# Files that might appear in the root of a volume
-.DocumentRevisions-V100
-.fseventsd
-.Spotlight-V100
-.TemporaryItems
-.Trashes
-.VolumeIcon.icns
-
-# Directories potentially created on remote AFP share
-.AppleDB
-.AppleDesktop
-Network Trash Folder
-Temporary Items
-.apdisk
-<<<<<<< HEAD
-Firmware/allInOneLogger_V1/MDK-ARM
-=======
-
->>>>>>> origin/master
+#exclude Keil MDK project files
+/Firmware/allInOneLogger_V1/MDK-ARM/
+/Firmware/allInOneLogger_V1/Drivers
