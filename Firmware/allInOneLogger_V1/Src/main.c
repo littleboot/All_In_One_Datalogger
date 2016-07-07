@@ -149,14 +149,29 @@ int main(void)
 
 		//printf("Test UART1 baud=115200\r\n");
 		
-		update_display_sensordata();
-
+		update_display_sensordata(); //Updates display sensor values, at this moment only temp and RH
 		
+		uint8_t cmd[9] = {0xFF,0x01,0x86,0x00,0x00,0x00,0x00,0x00,0x79}; //Starting byte fixed; sensor no.; Get gas concentration cmd; ; ; ; ; ; ;check value;
+		uint8_t response[9]; // stores received data
+				
+		HAL_UART_Transmit(&huart2, cmd, 9, 1000); //Send commands to nextion display
+		HAL_UART_Receive(&huart2, response, 9, 2000); //save response to response buffer
+		
+		int responseHigh = (int) response[2];
+		int responseLow = (int) response[3];
+		int ppm = (256*responseHigh)+responseLow;
+		
+		char buffer[80]; //stores string to be send
+		sprintf(buffer,"t3.txt=\"%d ppm\"ÿÿÿ", ppm); //Example: t2.txt="Tom"ÿÿÿ
+		int len = strlen(buffer);
+		HAL_UART_Transmit(&huart3, (uint8_t *)buffer, len, 1000); //Send commands to nextion display
+		
+    printf("ppm: %d\n", ppm);
 		
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
-  }
+  } 
   /* USER CODE END 3 */
 
 }
