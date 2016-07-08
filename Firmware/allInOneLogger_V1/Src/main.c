@@ -107,6 +107,7 @@ int get_CO2(void);
 
 int get_lightlevel(void);
 
+void configure_display_sleepmode(void);
 void update_display_time(void);
 void update_display_sensordata(void);
 
@@ -172,7 +173,9 @@ int main(void)
 	HAL_RTC_SetTime(&hrtc,&time,RTC_FORMAT_BIN);
 	HAL_RTC_SetDate(&hrtc,&date,RTC_FORMAT_BIN);
 	
-	HAL_Delay(3000); //Delay to prevent CO2 sensor at startup from doing wierd stuff.
+	HAL_Delay(3000); //Delay to prevent CO2 sensor at startup from doing wierd stuff. and make sure Nextion display is fully booted
+	
+	configure_display_sleepmode(); //screensaver for display
 	
   /* USER CODE END 2 */
 
@@ -185,6 +188,7 @@ int main(void)
 		
 		update_display_sensordata(); //Updates display sensor values, at this moment only temp RH and CO2
 		update_display_time(); //Updates the time on the display
+		
 		
   /* USER CODE END WHILE */
 
@@ -536,6 +540,14 @@ void update_display_time()
 	int len = strlen(buffer);
 	
 	HAL_UART_Transmit(&huart3, (uint8_t *)buffer, len, 1000); //Send commands to nextion display	
+}
+
+void configure_display_sleepmode()
+{
+	char buffer[40]; //stores string to be send
+	sprintf(buffer,"thsp=10ÿÿÿthup=1ÿÿÿ"); //thsp=30(No touch operation within 30 seconds, it will auto enter into sleep mode). //Touch will autom awake switch during sleep mode
+	int len = strlen(buffer);
+	HAL_UART_Transmit(&huart3, (uint8_t *)buffer, len, 1000); //Send commands to nextion display
 }
 
 /* USER CODE END 4 */
