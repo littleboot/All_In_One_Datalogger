@@ -38,6 +38,7 @@
 #include <string.h>
 #include <stdint.h>
 
+
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -162,16 +163,16 @@ int main(void)
 
   /* USER CODE BEGIN 2 */
 	///Configure RTC
-	time.Hours = 18;
-	time.Minutes = 43;
+	time.Hours = 0;
+	time.Minutes = 25;
 	time.Seconds = 0;
 	date.WeekDay = RTC_WEEKDAY_THURSDAY;
-	date.Date = 7;
+	date.Date = 10;
 	date.Month = RTC_MONTH_JULY;
 	date.Year = 16;
 	
-	HAL_RTC_SetTime(&hrtc,&time,RTC_FORMAT_BIN);
-	HAL_RTC_SetDate(&hrtc,&date,RTC_FORMAT_BIN);
+//	HAL_RTC_SetTime(&hrtc,&time,RTC_FORMAT_BIN);
+//	HAL_RTC_SetDate(&hrtc,&date,RTC_FORMAT_BIN);
 	
 	HAL_Delay(3000); //Delay to prevent CO2 sensor at startup from doing wierd stuff. and make sure Nextion display is fully booted
 	
@@ -188,7 +189,8 @@ int main(void)
 		
 		update_display_sensordata(); //Updates display sensor values, at this moment only temp RH and CO2
 		update_display_time(); //Updates the time on the display
-		
+				
+		//RCC_APB1ENR_BKPEN;
 		
   /* USER CODE END WHILE */
 
@@ -207,10 +209,9 @@ void SystemClock_Config(void)
   RCC_ClkInitTypeDef RCC_ClkInitStruct;
   RCC_PeriphCLKInitTypeDef PeriphClkInit;
 
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_LSI;
-  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.HSICalibrationValue = 16;
-  RCC_OscInitStruct.LSIState = RCC_LSI_ON;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE|RCC_OSCILLATORTYPE_LSE;
+  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+  RCC_OscInitStruct.LSEState = RCC_LSE_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
@@ -219,7 +220,7 @@ void SystemClock_Config(void)
 
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSE;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
@@ -229,7 +230,7 @@ void SystemClock_Config(void)
   }
 
   PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_RTC|RCC_PERIPHCLK_ADC;
-  PeriphClkInit.RTCClockSelection = RCC_RTCCLKSOURCE_LSI;
+  PeriphClkInit.RTCClockSelection = RCC_RTCCLKSOURCE_LSE;
   PeriphClkInit.AdcClockSelection = RCC_ADCPCLK2_DIV2;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
@@ -313,24 +314,24 @@ static void MX_RTC_Init(void)
     Error_Handler();
   }
 
-  sTime.Hours = 0x1;
-  sTime.Minutes = 0x0;
-  sTime.Seconds = 0x0;
+//  sTime.Hours = 0x1;
+//  sTime.Minutes = 0x0;
+//  sTime.Seconds = 0x0;
 
-  if (HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BCD) != HAL_OK)
-  {
-    Error_Handler();
-  }
+//  if (HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BCD) != HAL_OK)
+//  {
+//    Error_Handler();
+//  }
 
-  DateToUpdate.WeekDay = RTC_WEEKDAY_MONDAY;
-  DateToUpdate.Month = RTC_MONTH_JANUARY;
-  DateToUpdate.Date = 0x1;
-  DateToUpdate.Year = 0x0;
+//  DateToUpdate.WeekDay = RTC_WEEKDAY_MONDAY;
+//  DateToUpdate.Month = RTC_MONTH_JANUARY;
+//  DateToUpdate.Date = 0x1;
+//  DateToUpdate.Year = 0x0;
 
-  if (HAL_RTC_SetDate(&hrtc, &DateToUpdate, RTC_FORMAT_BCD) != HAL_OK)
-  {
-    Error_Handler();
-  }
+//  if (HAL_RTC_SetDate(&hrtc, &DateToUpdate, RTC_FORMAT_BCD) != HAL_OK)
+//  {
+//    Error_Handler();
+//  }
 
 }
 
@@ -428,6 +429,7 @@ static void MX_GPIO_Init(void)
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
@@ -532,20 +534,19 @@ void update_display_time()
 	
 	if(currentTime.Seconds%2 == 0) //display : when seconds are even
 	{
-		sprintf(buffer,"t0.txt=\"%d:%02d\"ÿÿÿ",currentTime.Hours, currentTime.Minutes); // %02d is format printf so the minutes always consists of two numbers starting with zero's
+		sprintf(buffer,"t0.txt=\"%02d:%02d:%02d\"ÿÿÿ",currentTime.Hours, currentTime.Minutes, currentTime.Seconds); // %02d is format printf so the minutes always consists of two numbers starting with zero's
 	}else {
-		sprintf(buffer,"t0.txt=\"%d %02d\"ÿÿÿ",currentTime.Hours, currentTime.Minutes); 
+		sprintf(buffer,"t0.txt=\"%02d %02d %02d\"ÿÿÿ",currentTime.Hours, currentTime.Minutes, currentTime.Seconds); 
 	}
-
-	int len = strlen(buffer);
 	
+	int len = strlen(buffer);
 	HAL_UART_Transmit(&huart3, (uint8_t *)buffer, len, 1000); //Send commands to nextion display	
 }
 
 void configure_display_sleepmode()
 {
 	char buffer[40]; //stores string to be send
-	sprintf(buffer,"thsp=10ÿÿÿthup=1ÿÿÿ"); //thsp=30(No touch operation within 30 seconds, it will auto enter into sleep mode). //Touch will autom awake switch during sleep mode
+	sprintf(buffer,"thsp=30ÿÿÿthup=1ÿÿÿ"); //thsp=30(No touch operation within 30 seconds, it will auto enter into sleep mode). //Touch will autom awake switch during sleep mode
 	int len = strlen(buffer);
 	HAL_UART_Transmit(&huart3, (uint8_t *)buffer, len, 1000); //Send commands to nextion display
 }
