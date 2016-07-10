@@ -188,8 +188,6 @@ int main(void)
 		
 		update_display_sensordata(); //Updates display sensor values, at this moment only temp RH and CO2
 		update_display_time(); //Updates the time on the display
-				
-		//RCC_APB1ENR_BKPEN;
 		
   /* USER CODE END WHILE */
 
