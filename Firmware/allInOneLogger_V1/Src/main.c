@@ -60,11 +60,12 @@ UART_HandleTypeDef huart3;
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 #define intervalUpdateDisplaySensorData 1000 //time in ms
+#define CO2SensorStartupTime = 3*60*1000 //3min startuptime for CO2 sensor
 
 RTC_DateTypeDef date; //stores date to be configured
 RTC_TimeTypeDef time; //stores time to be configured
 
-bool CO2SensorReady = false; //false if still warming up (3min), if ready changed to true
+bool CO2Ready = false;
 uint32_t prevSensorUpdateDisplay = 0;
 
 
@@ -566,16 +567,23 @@ int get_lightlevel()
 
 void update_display_sensordata(void)
 {
+	char buffer[120]; //stores string to be send
 	///Get sensor data from sensors
 	float temp = get_temperature();
 	int RH = get_humidity();
 	int CO2 = get_CO2();
 	int ldr = get_lightlevel();
 	
-	char buffer[120]; //stores string to be send
-	sprintf(buffer,"t2.txt=\"%d %%\"ÿÿÿt3.txt=\"%.1f C\"ÿÿÿt4.txt=\"%d %%\"ÿÿÿt5.txt=\"%d ppm\"ÿÿÿ",ldr, temp, RH, CO2); //Example: t2.txt="Tom"ÿÿÿ
-	int len = strlen(buffer);
+	if(CO2Ready == false && HAL_GetTick() > CO2SensorStartupTime ) { //check if CO2 sensor is ready
+		CO2Ready =  true;
+	}
 	
+	if(CO2Ready == false) {
+		sprintf(buffer,"t2.txt=\"%d %%\"ÿÿÿt3.txt=\"%.1f C\"ÿÿÿt4.txt=\"%d %%\"ÿÿÿt5.txt=\"Warm up\"ÿÿÿ",ldr, temp, RH); 
+	}else{
+		sprintf(buffer,"t2.txt=\"%d %%\"ÿÿÿt3.txt=\"%.1f C\"ÿÿÿt4.txt=\"%d %%\"ÿÿÿt5.txt=\"%d ppm\"ÿÿÿ",ldr, temp, RH, CO2); 
+	}
+	int len = strlen(buffer);
 	HAL_UART_Transmit(&huart3, (uint8_t *)buffer, len, 1000); //Send commands to nextion display
 }
 
