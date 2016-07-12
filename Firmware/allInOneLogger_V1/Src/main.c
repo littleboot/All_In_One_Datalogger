@@ -55,12 +55,31 @@ UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart3;
 
+
+
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
+#define intervalUpdateDisplaySensorData 1000 //time in ms
+
 RTC_DateTypeDef date; //stores date to be configured
 RTC_TimeTypeDef time; //stores time to be configured
 
 bool CO2SensorReady = false; //false if still warming up (3min), if ready changed to true
+uint32_t prevSensorUpdateDisplay = 0;
+
+
+struct timeColors{
+	uint8_t hoursColor;
+	uint8_t minutesColor;
+	uint8_t dateColor;
+	uint8_t monthColor;
+	uint8_t yearColor;
+};
+
+struct timeColors tc;
+
+typedef enum {HOURS, MINUTES, DATE, MONTH, YEAR} time_select_type;
+time_select_type timeSelected = HOURS;
 
 /* USER CODE END PV */
 
@@ -112,14 +131,18 @@ int get_lightlevel(void);
 
 void configure_display_sleepmode(void);
 void update_display_time(void);
+void update_display_date(void);
 void update_display_sensordata(void);
+
+void set_time(uint8_t hours, uint8_t minutes, uint8_t seconds);
+void sete_date(uint8_t day, uint8_t month, uint8_t year);
 
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
 /**
 	* TO DO:
-	* -Save and recall variables from EEPROM Like thingsspeak channel key
+	* -Save and recall variables from RTC BKP Like thingsspeak channel key
 	* -Add fucntion that gets temp from previous humidity measurement to speed up the code
 	* -After power on the CO2 sensor shows wrong values. show dots the first 3 minutes at CO2 level istead of wrong values, 
 	* 
@@ -130,8 +153,8 @@ void update_display_sensordata(void);
 	* -increase clock speed (if necessary)
 	*
 	* Bugs:
-	* When I2C is busy and SDA is disconnected and reconnected. transmit and receive I2c functions return HAL_TIMEOUT and do nothing else. Need debugger to fix this
-	* Some times CO2 sensor is stuck at high value like 3546. Problem is caused after power on 
+	* -Date not saved after power off like the time
+	* -When I2C is busy and SDA is disconnected and reconnected. transmit and receive I2c functions return HAL_TIMEOUT and do nothing else. Need debugger to fix this
 	*/
 /* USER CODE END 0 */
 
@@ -161,9 +184,9 @@ int main(void)
   MX_ADC1_Init();
 
   /* USER CODE BEGIN 2 */
-	///Configure RTC
+	///Configure RTC manually 
 	time.Hours = 0;
-	time.Minutes = 25;
+	time.Minutes = 0;
 	time.Seconds = 0;
 	date.WeekDay = RTC_WEEKDAY_THURSDAY;
 	date.Date = 10;
@@ -171,7 +194,7 @@ int main(void)
 	date.Year = 16;
 	
 //	HAL_RTC_SetTime(&hrtc,&time,RTC_FORMAT_BIN);
-//	HAL_RTC_SetDate(&hrtc,&date,RTC_FORMAT_BIN);
+	HAL_RTC_SetDate(&hrtc,&date,RTC_FORMAT_BIN);
 	
 	HAL_Delay(3000); //Delay to prevent CO2 sensor at startup from doing wierd stuff. and make sure Nextion display is fully booted
 	
@@ -183,11 +206,38 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-		///Blink LED, Used to check if MCU isn't stuck in a long loop
-		HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13); //LED toggle
+		uint32_t millis  = HAL_GetTick(); //counter amount of miliseconds the program is running (createde in systick isr)
 		
-		update_display_sensordata(); //Updates display sensor values, at this moment only temp RH and CO2
+		///Blink LED, Used to check if MCU isn't stuck in a long loop
+		//HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13); //LED toggle
+		
+		if(prevSensorUpdateDisplay + intervalUpdateDisplaySensorData < millis) { //update sensor data and display every second
+			HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13); //LED toggle
+			update_display_sensordata(); //Updates display sensor values, at this moment only temp RH and CO2
+			update_display_date(); //Updates date on display
+		}
+			
 		update_display_time(); //Updates the time on the display
+
+		uint8_t response[2]; // stores received cmd
+		HAL_UART_Receive(&huart3, response, 2, 2000); //save response to response buffer
+		
+		switch(response[1]) {
+
+			 case 0x01 :
+					//
+					break; /* optional */
+			
+			 case 0x02  :
+					//
+					break; 
+			 case 0x03  : /* time setting */
+					//
+					//time.Hours
+					
+					break; /* optional */
+		}
+			
 		
   /* USER CODE END WHILE */
 
@@ -298,8 +348,8 @@ static void MX_I2C1_Init(void)
 static void MX_RTC_Init(void)
 {
 
-  RTC_TimeTypeDef sTime;
-  RTC_DateTypeDef DateToUpdate;
+//  RTC_TimeTypeDef sTime;
+//  RTC_DateTypeDef DateToUpdate;
 
     /**Initialize RTC and set the Time and Date 
     */
@@ -521,7 +571,7 @@ void update_display_sensordata(void)
 	int ldr = get_lightlevel();
 	
 	char buffer[120]; //stores string to be send
-	sprintf(buffer,"t1.txt=\"%.1f C\"ÿÿÿt2.txt=\"%d %%\"ÿÿÿt3.txt=\"%d ppm\"ÿÿÿt4.txt=\"%d %%\"ÿÿÿ",temp, RH, CO2, ldr); //Example: t2.txt="Tom"ÿÿÿ
+	sprintf(buffer,"t2.txt=\"%d %%\"ÿÿÿt3.txt=\"%.1f C\"ÿÿÿt4.txt=\"%d %%\"ÿÿÿt5.txt=\"%d ppm\"ÿÿÿ",ldr, temp, RH, CO2); //Example: t2.txt="Tom"ÿÿÿ
 	int len = strlen(buffer);
 	
 	HAL_UART_Transmit(&huart3, (uint8_t *)buffer, len, 1000); //Send commands to nextion display
@@ -536,13 +586,26 @@ void update_display_time()
 	
 	if(currentTime.Seconds%2 == 0) //display : when seconds are even
 	{
-		sprintf(buffer,"t0.txt=\"%02d:%02d:%02d\"ÿÿÿ",currentTime.Hours, currentTime.Minutes, currentTime.Seconds); // %02d is format printf so the minutes always consists of two numbers starting with zero's
+		sprintf(buffer,"t0.txt=\"%02d:%02d\"ÿÿÿ",currentTime.Hours, currentTime.Minutes); // %02d is format printf so the minutes always consists of two numbers starting with zero's
 	}else {
-		sprintf(buffer,"t0.txt=\"%02d %02d %02d\"ÿÿÿ",currentTime.Hours, currentTime.Minutes, currentTime.Seconds); 
+		sprintf(buffer,"t0.txt=\"%02d %02d\"ÿÿÿ",currentTime.Hours, currentTime.Minutes); 
 	}
 	
 	int len = strlen(buffer);
 	HAL_UART_Transmit(&huart3, (uint8_t *)buffer, len, 1000); //Send commands to nextion display	
+}
+
+void update_display_date()
+{
+	RTC_DateTypeDef currentDate; //store date returned from the RTC
+	HAL_RTC_GetDate(&hrtc, &currentDate,RTC_FORMAT_BIN); //get time from RTC and store in above variable
+	
+	char buffer[40]; //stores string to be send
+	
+	sprintf(buffer,"t1.txt=\"%02d-%02d-20%02d\"ÿÿÿ",currentDate.Date, currentDate.Month,currentDate.Year);
+	
+	int len = strlen(buffer);
+	HAL_UART_Transmit(&huart3, (uint8_t *)buffer, len, 1000); //Send commands to nextion display		
 }
 
 void configure_display_sleepmode()
@@ -552,6 +615,8 @@ void configure_display_sleepmode()
 	int len = strlen(buffer);
 	HAL_UART_Transmit(&huart3, (uint8_t *)buffer, len, 1000); //Send commands to nextion display
 }
+
+
 
 /* USER CODE END 4 */
 
