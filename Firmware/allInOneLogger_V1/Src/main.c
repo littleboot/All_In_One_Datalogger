@@ -211,7 +211,9 @@ int main(void)
 		///Blink LED, Used to check if MCU isn't stuck in a long loop
 		//HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13); //LED toggle
 		
-		if(prevSensorUpdateDisplay + intervalUpdateDisplaySensorData < millis) { //update sensor data and display every second
+		if(millis - prevSensorUpdateDisplay >= intervalUpdateDisplaySensorData) { //update sensor data and display every second
+			prevSensorUpdateDisplay = millis;
+			
 			HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13); //LED toggle
 			update_display_sensordata(); //Updates display sensor values, at this moment only temp RH and CO2
 			update_display_date(); //Updates date on display
@@ -219,24 +221,24 @@ int main(void)
 			
 		update_display_time(); //Updates the time on the display
 
-		uint8_t response[2]; // stores received cmd
-		HAL_UART_Receive(&huart3, response, 2, 2000); //save response to response buffer
-		
-		switch(response[1]) {
+//		uint8_t response[2]; // stores received cmd
+//		HAL_UART_Receive(&huart3, response, 2, 2000); //save response to response buffer
+//		
+//		switch(response[1]) {
 
-			 case 0x01 :
-					//
-					break; /* optional */
-			
-			 case 0x02  :
-					//
-					break; 
-			 case 0x03  : /* time setting */
-					//
-					//time.Hours
-					
-					break; /* optional */
-		}
+//			 case 0x01 :
+//					//
+//					break; /* optional */
+//			
+//			 case 0x02  :
+//					//
+//					break; 
+//			 case 0x03  : /* time setting */
+//					//
+//					//time.Hours
+//					
+//					break; /* optional */
+//		}
 			
 		
   /* USER CODE END WHILE */
