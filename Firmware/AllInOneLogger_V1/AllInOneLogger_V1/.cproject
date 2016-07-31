@@ -58,7 +58,7 @@
 								<option id="fr.ac6.managedbuild.tool.gnu.cross.c.linker.script.530381074" name="Linker Script (-T)" superClass="fr.ac6.managedbuild.tool.gnu.cross.c.linker.script" value="../STM32F103C8Tx_FLASH.ld" valueType="string"/>
 								<option id="gnu.c.link.option.libs.434274532" name="Libraries (-l)" superClass="gnu.c.link.option.libs"/>
 								<option id="gnu.c.link.option.paths.771585132" name="Library search path (-L)" superClass="gnu.c.link.option.paths"/>
-								<option id="gnu.c.link.option.ldflags.1945097086" superClass="gnu.c.link.option.ldflags" value="-specs=nosys.specs -specs=nano.specs" valueType="string"/>
+								<option id="gnu.c.link.option.ldflags.1945097086" name="Linker flags" superClass="gnu.c.link.option.ldflags" value="-specs=nosys.specs -specs=nano.specs  -u _printf_float" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.linker.input.180538794" superClass="cdt.managedbuild.tool.gnu.c.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
@@ -99,8 +99,8 @@
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
 	<storageModule moduleId="refreshScope" versionNumber="2">
-		<configuration artifactName="AllInOneLogger_V1" configurationName="Debug">
-			<resource resourceType="PROJECT" workspacePath="AllInOneLogger_V1"/>
+		<configuration configurationName="Debug">
+			<resource resourceType="PROJECT" workspacePath="/AllInOneLogger_V1"/>
 		</configuration>
 	</storageModule>
 </cproject>

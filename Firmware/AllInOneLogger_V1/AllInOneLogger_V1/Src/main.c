@@ -38,6 +38,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include "si7021.h"
 
 /* USER CODE END Includes */
 
@@ -58,9 +59,6 @@ UART_HandleTypeDef huart3;
 /* Private variables ---------------------------------------------------------*/
 #define intervalUpdateDisplaySensorData 1000 //time in ms
 #define CO2SensorStartupTime 3*60*1000 //3min startuptime for CO2 sensor
-
-RTC_DateTypeDef date; //stores date to be configured
-RTC_TimeTypeDef time; //stores time to be configured
 
 bool CO2Ready = false;
 uint32_t prevSensorUpdateDisplay = 0;
@@ -146,17 +144,24 @@ int main(void) {
 	MX_USART3_UART_Init();
 
 	/* USER CODE BEGIN 2 */
-	///Configure RTC manually
-	time.Hours = 0;
-	time.Minutes = 0;
-	time.Seconds = 0;
-	date.WeekDay = RTC_WEEKDAY_THURSDAY;
-	date.Date = 10;
-	date.Month = RTC_MONTH_JULY;
-	date.Year = 16;
+	if (HAL_RTCEx_BKUPRead(&hrtc, 0x01) != 0x01) { //time has not been set
+		///Configure RTC manually
+		RTC_DateTypeDef date; //stores date to be configured
+		RTC_TimeTypeDef time; //stores time to be configured
 
-//	HAL_RTC_SetTime(&hrtc, &time, RTC_FORMAT_BIN);
-//	HAL_RTC_SetDate(&hrtc, &date, RTC_FORMAT_BIN);
+		time.Hours = 22;
+		time.Minutes = 13;
+		time.Seconds = 0;
+		date.WeekDay = RTC_WEEKDAY_SUNDAY;
+		date.Date = 31;
+		date.Month = RTC_MONTH_JULY;
+		date.Year = 16;
+
+		HAL_RTC_SetTime(&hrtc, &time, RTC_FORMAT_BIN);
+		HAL_RTC_SetDate(&hrtc, &date, RTC_FORMAT_BIN);
+
+		HAL_RTCEx_BKUPWrite(&hrtc, 0x01, 0x01);
+	}
 
 	HAL_Delay(3000); //Delay to prevent CO2 sensor at startup from doing weird stuff. and make sure Nextion display is fully booted
 
@@ -303,22 +308,22 @@ static void MX_RTC_Init(void) {
 		Error_Handler();
 	}
 
-	sTime.Hours = 0x1;
-	sTime.Minutes = 0x0;
-	sTime.Seconds = 0x0;
+//	sTime.Hours = 0x1;
+//	sTime.Minutes = 0x0;
+//	sTime.Seconds = 0x0;
+//
+//	if (HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BCD) != HAL_OK) {
+//		Error_Handler();
+//	}
 
-	if (HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BCD) != HAL_OK) {
-		Error_Handler();
-	}
-
-	DateToUpdate.WeekDay = RTC_WEEKDAY_MONDAY;
-	DateToUpdate.Month = RTC_MONTH_JANUARY;
-	DateToUpdate.Date = 0x1;
-	DateToUpdate.Year = 0x0;
-
-	if (HAL_RTC_SetDate(&hrtc, &DateToUpdate, RTC_FORMAT_BCD) != HAL_OK) {
-		Error_Handler();
-	}
+//	DateToUpdate.WeekDay = RTC_WEEKDAY_MONDAY;
+//	DateToUpdate.Month = RTC_MONTH_JANUARY;
+//	DateToUpdate.Date = 0x1;
+//	DateToUpdate.Year = 0x0;
+//
+//	if (HAL_RTC_SetDate(&hrtc, &DateToUpdate, RTC_FORMAT_BCD) != HAL_OK) {
+//		Error_Handler();
+//	}
 
 }
 
@@ -445,36 +450,6 @@ int map(int x, int in_min, int in_max, int out_min, int out_max) {
 	return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
-float get_airtemp(void) {
-	//Variables needed
-	uint8_t cmd = 0xE3;
-	uint8_t I2CDataReceived[2] = { 0, 0 };
-
-	HAL_I2C_Master_Transmit(&hi2c1, (0x40 << 1), &cmd, 1, 0xFF); //this function takes a byte as input adress. because the adress in the datasheet is 0x40 (7-Bit) it needs to be shifted left by one
-	HAL_I2C_Master_Receive(&hi2c1, (0x40 << 1), I2CDataReceived, 2, 0xFF);
-	uint16_t tempCode = (uint16_t) I2CDataReceived[0] << 8
-			| (uint16_t) I2CDataReceived[1]; //convert the received MSB en LSB to one 16-bit word.
-	return ((175.72 * tempCode) / 65536) - 46.85;
-}
-
-int get_humidity(void) {
-	//Variables needed
-	uint8_t cmd = 0xE5;
-	uint8_t I2CDataReceived[2] = { 0, 0 };
-
-	HAL_I2C_Master_Transmit(&hi2c1, (0x40 << 1), &cmd, 1, 0xFF); //this function takes a byte as input adress. because the adress in the datasheet is 0x40 (7-Bit) it needs to be shifted left by one
-	HAL_I2C_Master_Receive(&hi2c1, (0x40 << 1), I2CDataReceived, 2, 0xFF); //Note timeout is higher then the get_temp function
-	uint16_t RHCode = (uint16_t) I2CDataReceived[0] << 8
-			| (uint16_t) I2CDataReceived[1]; //convert the received MSB en LSB to one 16-bit word.
-
-	//make sure value is between 0 and 100%, recommended in datasheet sensor
-	int humidity = ((125 * RHCode) / 65536) - 6;
-	if (humidity > 100)
-		humidity = 100;
-	if (humidity < 0)
-		humidity = 0;
-	return humidity;
-}
 
 int get_CO2(void) {
 	uint8_t cmd[9] = { 0xFF, 0x01, 0x86, 0x00, 0x00, 0x00, 0x00, 0x00, 0x79 }; //Starting byte fixed; sensor no.; Get gas concentration cmd; ; ; ; ; ; ;check value;
@@ -567,13 +542,13 @@ void update_display_time() {
 }
 
 void update_display_date() {
-	RTC_DateTypeDef currentDate; //store date returned from the RTC
-	HAL_RTC_GetDate(&hrtc, &currentDate, RTC_FORMAT_BIN); //get time from RTC and store in above variable
+	//RTC_DateTypeDef currentDate; //store date returned from the RTC
+	//HAL_RTC_GetDate(&hrtc, &currentDate, RTC_FORMAT_BIN); //get time from RTC and store in above variable
+	static uint32_t dayCounter = 1;
 
 	char buffer[40]; //stores string to be send
 
-	sprintf(buffer, "t1.txt=\"%02d-%02d-20%02d\"ÿÿÿ", currentDate.Date,
-			currentDate.Month, currentDate.Year);
+	sprintf(buffer, "t1.txt=\"Day: %d\"ÿÿÿ", dayCounter);
 
 	int len = strlen(buffer);
 	HAL_UART_Transmit(&huart3, (uint8_t *) buffer, len, 1000); //Send commands to nextion display
