@@ -7,9 +7,7 @@
 
 #include "stm32f1xx_hal.h"
 #include <stdio.h>
-#include <string.h>
 #include <stdint.h>
-#include <stdbool.h>
 #include "si7021.h"
 
 

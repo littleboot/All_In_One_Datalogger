@@ -27,18 +27,19 @@
 							<builder buildPath="${workspace_loc:/AllInOneLogger_V1}/Debug" id="fr.ac6.managedbuild.builder.gnu.cross.373143459" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="fr.ac6.managedbuild.builder.gnu.cross">
 								<outputEntries>
 									<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="outputPath" name="Debug"/>
-									<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="outputPath" name="Release"/>
 								</outputEntries>
 							</builder>
 							<tool id="fr.ac6.managedbuild.tool.gnu.cross.c.compiler.1141514065" name="MCU GCC Compiler" superClass="fr.ac6.managedbuild.tool.gnu.cross.c.compiler">
 								<option defaultValue="gnu.c.optimization.level.none" id="fr.ac6.managedbuild.gnu.c.compiler.option.optimization.level.1320296150" name="Optimization Level" superClass="fr.ac6.managedbuild.gnu.c.compiler.option.optimization.level" useByScannerDiscovery="false" value="fr.ac6.managedbuild.gnu.c.optimization.level.size" valueType="enumerated"/>
 								<option id="gnu.c.compiler.option.debugging.level.1247149910" name="Debug Level" superClass="gnu.c.compiler.option.debugging.level" useByScannerDiscovery="false" value="gnu.c.debugging.level.max" valueType="enumerated"/>
 								<option id="gnu.c.compiler.option.include.paths.718425779" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
+									<listOptionValue builtIn="false" value="C:/Users/Tom/Documents/GitHub/All_In_One_Datalogger/Firmware/AllInOneLogger_V1/AllInOneLogger_V1/Inc"/>
+									<listOptionValue builtIn="false" value="C:/Users/Tom/Documents/GitHub/All_In_One_Datalogger/Firmware/AllInOneLogger_V1/AllInOneLogger_V1/Drivers/STM32F1xx_HAL_Driver/Inc"/>
+									<listOptionValue builtIn="false" value="C:/Users/Tom/Documents/GitHub/All_In_One_Datalogger/Firmware/AllInOneLogger_V1/AllInOneLogger_V1/Drivers/STM32F1xx_HAL_Driver/Inc/Legacy"/>
+									<listOptionValue builtIn="false" value="C:/Users/Tom/Documents/GitHub/All_In_One_Datalogger/Firmware/AllInOneLogger_V1/AllInOneLogger_V1/Drivers/CMSIS/Include"/>
+									<listOptionValue builtIn="false" value="C:/Users/Tom/Documents/GitHub/All_In_One_Datalogger/Firmware/AllInOneLogger_V1/AllInOneLogger_V1/Drivers/CMSIS/Device/ST/STM32F1xx/Include"/>
+									<listOptionValue builtIn="false" value="C:/Users/Tom/Documents/GitHub/All_In_One_Datalogger/Firmware/AllInOneLogger_V1/AllInOneLogger_V1/Debug"/>
 									<listOptionValue builtIn="false" value="../Inc"/>
-									<listOptionValue builtIn="false" value="../Drivers/STM32F1xx_HAL_Driver/Inc"/>
-									<listOptionValue builtIn="false" value="../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy"/>
-									<listOptionValue builtIn="false" value="../Drivers/CMSIS/Include"/>
-									<listOptionValue builtIn="false" value="../Drivers/CMSIS/Device/ST/STM32F1xx/Include"/>
 								</option>
 								<option id="gnu.c.compiler.option.preprocessor.def.symbols.595936514" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="__weak=&quot;__attribute__((weak))&quot;"/>
@@ -68,7 +69,12 @@
 							<tool id="fr.ac6.managedbuild.tool.gnu.archiver.1373340904" name="MCU GCC Archiver" superClass="fr.ac6.managedbuild.tool.gnu.archiver"/>
 							<tool id="fr.ac6.managedbuild.tool.gnu.cross.assembler.1482975926" name="MCU GCC Assembler" superClass="fr.ac6.managedbuild.tool.gnu.cross.assembler">
 								<option id="gnu.both.asm.option.include.paths.1139165998" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value=""/>
+									<listOptionValue builtIn="false" value="C:/Users/Tom/Documents/GitHub/All_In_One_Datalogger/Firmware/AllInOneLogger_V1/AllInOneLogger_V1/Inc"/>
+									<listOptionValue builtIn="false" value="C:/Users/Tom/Documents/GitHub/All_In_One_Datalogger/Firmware/AllInOneLogger_V1/AllInOneLogger_V1/Drivers/STM32F1xx_HAL_Driver/Inc"/>
+									<listOptionValue builtIn="false" value="C:/Users/Tom/Documents/GitHub/All_In_One_Datalogger/Firmware/AllInOneLogger_V1/AllInOneLogger_V1/Drivers/STM32F1xx_HAL_Driver/Inc/Legacy"/>
+									<listOptionValue builtIn="false" value="C:/Users/Tom/Documents/GitHub/All_In_One_Datalogger/Firmware/AllInOneLogger_V1/AllInOneLogger_V1/Drivers/CMSIS/Include"/>
+									<listOptionValue builtIn="false" value="C:/Users/Tom/Documents/GitHub/All_In_One_Datalogger/Firmware/AllInOneLogger_V1/AllInOneLogger_V1/Drivers/CMSIS/Device/ST/STM32F1xx/Include"/>
+									<listOptionValue builtIn="false" value="C:/Users/Tom/Documents/GitHub/All_In_One_Datalogger/Firmware/AllInOneLogger_V1/AllInOneLogger_V1/Debug"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.457175559" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 								<inputType id="fr.ac6.managedbuild.tool.gnu.cross.assembler.input.200152766" superClass="fr.ac6.managedbuild.tool.gnu.cross.assembler.input"/>
@@ -77,8 +83,8 @@
 					</folderInfo>
 					<sourceEntries>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Src"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Inc"/>
+						<entry excluding="tm_stm32f4_onewire.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Src"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -99,8 +105,9 @@
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
 	<storageModule moduleId="refreshScope" versionNumber="2">
-		<configuration configurationName="Debug">
-			<resource resourceType="PROJECT" workspacePath="/AllInOneLogger_V1"/>
+		<configuration artifactName="AllInOneLogger_V1" configurationName="Debug">
+			<resource resourceType="PROJECT" workspacePath="AllInOneLogger_V1"/>
 		</configuration>
 	</storageModule>
+	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 </cproject>

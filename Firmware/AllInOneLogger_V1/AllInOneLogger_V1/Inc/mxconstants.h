@@ -41,14 +41,28 @@
 
 /* Private define ------------------------------------------------------------*/
 
-#define DEV_BOARD_LED_Pin GPIO_PIN_13
-#define DEV_BOARD_LED_GPIO_Port GPIOC
+#define OUTPUT__LED_Pin GPIO_PIN_13
+#define OUTPUT__LED_GPIO_Port GPIOC
 #define LDR_light_sensor_Pin GPIO_PIN_1
 #define LDR_light_sensor_GPIO_Port GPIOA
+#define UART2_TX__CO2_Sens_Pin GPIO_PIN_2
+#define UART2_TX__CO2_Sens_GPIO_Port GPIOA
+#define UART2_RX__CO2_Sens_Pin GPIO_PIN_3
+#define UART2_RX__CO2_Sens_GPIO_Port GPIOA
 #define CS_ESP8266_Pin GPIO_PIN_4
 #define CS_ESP8266_GPIO_Port GPIOA
+#define UART3_TX__Nextion_Pin GPIO_PIN_10
+#define UART3_TX__Nextion_GPIO_Port GPIOB
+#define UART3_RX__Nextion_Pin GPIO_PIN_11
+#define UART3_RX__Nextion_GPIO_Port GPIOB
 #define RST_ESP8266_Pin GPIO_PIN_8
 #define RST_ESP8266_GPIO_Port GPIOA
+#define UART1_TX__USB_Serial_Pin GPIO_PIN_9
+#define UART1_TX__USB_Serial_GPIO_Port GPIOA
+#define UART1_RX__USB_Serial_Pin GPIO_PIN_10
+#define UART1_RX__USB_Serial_GPIO_Port GPIOA
+#define OneWire__WaterTemp_Pin GPIO_PIN_12
+#define OneWire__WaterTemp_GPIO_Port GPIOA
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
