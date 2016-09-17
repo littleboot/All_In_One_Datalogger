@@ -41,28 +41,28 @@
 
 /* Private define ------------------------------------------------------------*/
 
-#define OUTPUT__LED_Pin GPIO_PIN_13
-#define OUTPUT__LED_GPIO_Port GPIOC
-#define LDR_light_sensor_Pin GPIO_PIN_1
-#define LDR_light_sensor_GPIO_Port GPIOA
-#define UART2_TX__CO2_Sens_Pin GPIO_PIN_2
-#define UART2_TX__CO2_Sens_GPIO_Port GPIOA
-#define UART2_RX__CO2_Sens_Pin GPIO_PIN_3
-#define UART2_RX__CO2_Sens_GPIO_Port GPIOA
-#define CS_ESP8266_Pin GPIO_PIN_4
-#define CS_ESP8266_GPIO_Port GPIOA
-#define UART3_TX__Nextion_Pin GPIO_PIN_10
-#define UART3_TX__Nextion_GPIO_Port GPIOB
-#define UART3_RX__Nextion_Pin GPIO_PIN_11
-#define UART3_RX__Nextion_GPIO_Port GPIOB
-#define RST_ESP8266_Pin GPIO_PIN_8
-#define RST_ESP8266_GPIO_Port GPIOA
-#define UART1_TX__USB_Serial_Pin GPIO_PIN_9
-#define UART1_TX__USB_Serial_GPIO_Port GPIOA
-#define UART1_RX__USB_Serial_Pin GPIO_PIN_10
-#define UART1_RX__USB_Serial_GPIO_Port GPIOA
-#define OneWire__WaterTemp_Pin GPIO_PIN_12
-#define OneWire__WaterTemp_GPIO_Port GPIOA
+#define LED_Pin GPIO_PIN_13
+#define LED_GPIO_Port GPIOC
+#define LDR_Pin GPIO_PIN_1
+#define LDR_GPIO_Port GPIOA
+#define CO2_Sens_TX_Pin GPIO_PIN_2
+#define CO2_Sens_TX_GPIO_Port GPIOA
+#define CO2_sens_RX_Pin GPIO_PIN_3
+#define CO2_sens_RX_GPIO_Port GPIOA
+#define ESP8266_CS_Pin GPIO_PIN_4
+#define ESP8266_CS_GPIO_Port GPIOA
+#define Display_TX_Pin GPIO_PIN_10
+#define Display_TX_GPIO_Port GPIOB
+#define Display_RX_Pin GPIO_PIN_11
+#define Display_RX_GPIO_Port GPIOB
+#define ESP8266_NRST_Pin GPIO_PIN_8
+#define ESP8266_NRST_GPIO_Port GPIOA
+#define USB_Serial_TX_Pin GPIO_PIN_9
+#define USB_Serial_TX_GPIO_Port GPIOA
+#define USB_Serial_RX_Pin GPIO_PIN_10
+#define USB_Serial_RX_GPIO_Port GPIOA
+#define WaterTemp_Pin GPIO_PIN_12
+#define WaterTemp_GPIO_Port GPIOA
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

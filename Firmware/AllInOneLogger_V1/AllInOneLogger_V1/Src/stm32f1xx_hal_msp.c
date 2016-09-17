@@ -92,9 +92,9 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc)
     /**ADC1 GPIO Configuration    
     PA1     ------> ADC1_IN1 
     */
-    GPIO_InitStruct.Pin = LDR_light_sensor_Pin;
+    GPIO_InitStruct.Pin = LDR_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
-    HAL_GPIO_Init(LDR_light_sensor_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_Init(LDR_GPIO_Port, &GPIO_InitStruct);
 
   /* USER CODE BEGIN ADC1_MspInit 1 */
 
@@ -117,7 +117,7 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* hadc)
     /**ADC1 GPIO Configuration    
     PA1     ------> ADC1_IN1 
     */
-    HAL_GPIO_DeInit(LDR_light_sensor_GPIO_Port, LDR_light_sensor_Pin);
+    HAL_GPIO_DeInit(LDR_GPIO_Port, LDR_Pin);
 
   }
   /* USER CODE BEGIN ADC1_MspDeInit 1 */
@@ -290,15 +290,15 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
     PA9     ------> USART1_TX
     PA10     ------> USART1_RX 
     */
-    GPIO_InitStruct.Pin = UART1_TX__USB_Serial_Pin;
+    GPIO_InitStruct.Pin = USB_Serial_TX_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-    HAL_GPIO_Init(UART1_TX__USB_Serial_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_Init(USB_Serial_TX_GPIO_Port, &GPIO_InitStruct);
 
-    GPIO_InitStruct.Pin = UART1_RX__USB_Serial_Pin;
+    GPIO_InitStruct.Pin = USB_Serial_RX_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(UART1_RX__USB_Serial_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_Init(USB_Serial_RX_GPIO_Port, &GPIO_InitStruct);
 
   /* USER CODE BEGIN USART1_MspInit 1 */
 
@@ -316,15 +316,15 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
     PA2     ------> USART2_TX
     PA3     ------> USART2_RX 
     */
-    GPIO_InitStruct.Pin = UART2_TX__CO2_Sens_Pin;
+    GPIO_InitStruct.Pin = CO2_Sens_TX_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-    HAL_GPIO_Init(UART2_TX__CO2_Sens_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_Init(CO2_Sens_TX_GPIO_Port, &GPIO_InitStruct);
 
-    GPIO_InitStruct.Pin = UART2_RX__CO2_Sens_Pin;
+    GPIO_InitStruct.Pin = CO2_sens_RX_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(UART2_RX__CO2_Sens_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_Init(CO2_sens_RX_GPIO_Port, &GPIO_InitStruct);
 
   /* USER CODE BEGIN USART2_MspInit 1 */
 
@@ -342,15 +342,15 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
     PB10     ------> USART3_TX
     PB11     ------> USART3_RX 
     */
-    GPIO_InitStruct.Pin = UART3_TX__Nextion_Pin;
+    GPIO_InitStruct.Pin = Display_TX_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-    HAL_GPIO_Init(UART3_TX__Nextion_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_Init(Display_TX_GPIO_Port, &GPIO_InitStruct);
 
-    GPIO_InitStruct.Pin = UART3_RX__Nextion_Pin;
+    GPIO_InitStruct.Pin = Display_RX_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(UART3_RX__Nextion_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_Init(Display_RX_GPIO_Port, &GPIO_InitStruct);
 
   /* USER CODE BEGIN USART3_MspInit 1 */
 
@@ -374,7 +374,7 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
     PA9     ------> USART1_TX
     PA10     ------> USART1_RX 
     */
-    HAL_GPIO_DeInit(GPIOA, UART1_TX__USB_Serial_Pin|UART1_RX__USB_Serial_Pin);
+    HAL_GPIO_DeInit(GPIOA, USB_Serial_TX_Pin|USB_Serial_RX_Pin);
 
   /* USER CODE BEGIN USART1_MspDeInit 1 */
 
@@ -392,7 +392,7 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
     PA2     ------> USART2_TX
     PA3     ------> USART2_RX 
     */
-    HAL_GPIO_DeInit(GPIOA, UART2_TX__CO2_Sens_Pin|UART2_RX__CO2_Sens_Pin);
+    HAL_GPIO_DeInit(GPIOA, CO2_Sens_TX_Pin|CO2_sens_RX_Pin);
 
   /* USER CODE BEGIN USART2_MspDeInit 1 */
 
@@ -410,7 +410,7 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
     PB10     ------> USART3_TX
     PB11     ------> USART3_RX 
     */
-    HAL_GPIO_DeInit(GPIOB, UART3_TX__Nextion_Pin|UART3_RX__Nextion_Pin);
+    HAL_GPIO_DeInit(GPIOB, Display_TX_Pin|Display_RX_Pin);
 
   /* USER CODE BEGIN USART3_MspDeInit 1 */
 
