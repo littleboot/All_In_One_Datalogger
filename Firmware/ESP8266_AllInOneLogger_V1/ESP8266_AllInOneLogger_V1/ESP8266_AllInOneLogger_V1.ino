@@ -3,6 +3,8 @@
 
 
   TO:DO
+  Change message structure. after start byte a commandTypeByte
+
   -Add CRC 
   -Send ACK to STM32F1
   -Add configuration message response: to configure SSID; Pass; ChannelNumber; myWritekey.
@@ -58,7 +60,7 @@ void loop() {
 		///make room in buffer for new element
 		uint8_t i = 0;
 		for (i = 1; i < bufferSize; i++) {
-			messageBuffer[i] = messageBuffer[i - 1];
+			messageBuffer[i-1] = messageBuffer[i];
 		}
 		messageBuffer[bufferSize-1] = Serial.read(); //store new byte in last position of the buffer
 		
@@ -75,14 +77,22 @@ void loop() {
 			uint8_t ph = messageBuffer[9]; 
 			uint8_t ec = messageBuffer[10];
 
-			ThingSpeak.setField(1, lightLevel);
-			ThingSpeak.setField(2, airTemp);
-			ThingSpeak.setField(3, humidity);
-			ThingSpeak.setField(4, co2);
-			ThingSpeak.setField(5, waterTemp);
-			ThingSpeak.setField(6, ph);
-			ThingSpeak.setField(7, ec);
-			ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);  // Write the fields at once. NOTE: Thingspeak write interval must be >15 sec.
+			unsigned long currentMillis = millis();
+			static unsigned long prevMillis = 0;
+
+			if ((currentMillis - prevMillis) > 20000) { //every 20 sec
+				prevMillis = currentMillis;
+
+				//TO DO: only set fields thatare active, use new byte for this
+				ThingSpeak.setField(1, lightLevel);
+				ThingSpeak.setField(2, airTemp);
+				ThingSpeak.setField(3, humidity);
+				ThingSpeak.setField(4, co2);
+				ThingSpeak.setField(5, waterTemp);
+				ThingSpeak.setField(6, ph);
+				ThingSpeak.setField(7, ec);
+				ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);  // Write the fields at once. NOTE! Thingspeak write interval must be >15 sec.
+			}	
 		}
 	}
 }

@@ -10,19 +10,27 @@
 #include <stdint.h>
 #include "ESP8266.h"
 
-void
-sendCommand (void)
-{
-  uint8_t cmd[11] =
-    { 0xFF, 0xFF, 0xFF, 0xF2, 0xF3, 0xF4, 0xF5, 0xF6, 0xF7, 0xF8, 0xF9 }; //Starting byte fixed; sensor no.; Get gas concentration cmd; ; ; ; ; ; ;check value;
+/* messageBuffer[bufferSize]
 
-  HAL_UART_Transmit (&huart1, cmd, 11, 100);
-//  uint8_t data[4] =
-//    { 0xff, 0x01, 0xff, 0x01 };
-//
-//  HAL_GPIO_WritePin (ESP8266_CS_GPIO_Port, ESP8266_CS_Pin, GPIO_PIN_RESET);
-//
-//  HAL_SPI_Transmit (&hspi1, data, 4, 100);
-//
-//  HAL_GPIO_WritePin (ESP8266_CS_GPIO_Port, ESP8266_CS_Pin, GPIO_PIN_SET);
+ +------+------------+---------+----------+-----+-----------+----+----+-----+
+ |Start | LightLevel | AirTemp | Humidity | CO2 | WaterTemp | PH | EC | CRC |
+ +------+------------+---------+----------+-----+-----------+----+----+-----+
+ Byte: | 0-2  |     3      |    4    |    5     | 6-7 |    8      |  9 | 10 | 11  |
+
+ start == 0xFF 0xFF 0xFF
+ */
+
+void
+sendToESP8266(uint8_t lightLevel, float airtemp, uint8_t humidity, uint16_t co2)
+{
+  airtemp = (uint8_t) airtemp;
+  uint8_t msbCo2 = (uint8_t) (co2 >> 8);
+  uint8_t lsbCo2 = (uint8_t) (co2 | 0x00FF);
+
+  uint8_t cmd[cmdSize] =
+    { 0xFF, 0xFF, 0xFF, lightLevel, airtemp, humidity, msbCo2, lsbCo2, 0, 0, 0 }; //Starting byte fixed; sensor no.; Get gas concentration cmd; ; ; ; ; ; ;check value;
+
+  HAL_UART_Transmit (&huart1, cmd, cmdSize, UART1Timeout);
+
+  //TO:DO wait for ACK
 }

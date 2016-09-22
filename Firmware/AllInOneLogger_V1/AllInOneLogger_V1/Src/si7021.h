@@ -12,8 +12,8 @@
 extern I2C_HandleTypeDef hi2c1;
 
 float
-get_airtemp (void);
+getAirtemp (void);
 int
-get_humidity (void);
+getHumidity (void);
 
 #endif /* SI7021_H_ */

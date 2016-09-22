@@ -8,10 +8,11 @@
 #ifndef MHZ19_H_
 #define MHZ19_H_
 
+#define UART2Timeout 100
+
 extern UART_HandleTypeDef huart2;
 
-int get_CO2(void);
-
-
+uint16_t
+getCO2(void);
 
 #endif /* MHZ19_H_ */

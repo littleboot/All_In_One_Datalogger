@@ -41,6 +41,7 @@
 #include "si7021.h"
 #include "MHZ19.h"
 #include "ESP8266.h"
+#include "NextionDisplay.h"
 
 /* USER CODE END Includes */
 
@@ -61,62 +62,35 @@ UART_HandleTypeDef huart3;
 #define CO2SensorStartupTime 3*60*1000 //3min startuptime for CO2 sensor
 
 bool CO2Ready = false;
-uint32_t prevSensorUpdateDisplay = 0;
 
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void
-SystemClock_Config (void);
+SystemClock_Config(void);
 void
-Error_Handler (void);
+Error_Handler(void);
 static void
-MX_GPIO_Init (void);
+MX_GPIO_Init(void);
 static void
-MX_ADC1_Init (void);
+MX_ADC1_Init(void);
 static void
-MX_I2C1_Init (void);
+MX_I2C1_Init(void);
 static void
-MX_RTC_Init (void);
+MX_RTC_Init(void);
 static void
-MX_USART1_UART_Init (void);
+MX_USART1_UART_Init(void);
 static void
-MX_USART2_UART_Init (void);
+MX_USART2_UART_Init(void);
 static void
-MX_USART3_UART_Init (void);
+MX_USART3_UART_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
 int
-map (int x, int in_min, int in_max, int out_min, int out_max);
-
-float
-get_airtemp (void);
+map(int x, int in_min, int in_max, int out_min, int out_max);
 int
-get_humidity (void);
-int
-get_CO2 (void);
-int
-get_light (void);
-
-void
-configure_display_sleepmode (void);
-void
-update_display_light (void);
-void
-update_display_airtemp (void);
-void
-update_display_humidity (void);
-void
-update_display_CO2 (void);
-
-void
-update_display_time (void);
-void
-update_display_date (void);
-
-//void set_time(uint8_t hours, uint8_t minutes, uint8_t seconds);
-//void sete_date(uint8_t day, uint8_t month, uint8_t year);
+getLight(void);
 
 /* USER CODE END PFP */
 
@@ -125,7 +99,7 @@ update_display_date (void);
  * TO DO:
  * -Save and recall variables from RTC BKP Like thingsspeak channel key
  * -Add fucntion that gets temp from previous humidity measurement to speed up the code
- * -After power on the CO2 sensor shows wrong values. show dots the first 3 minutes at CO2 level istead of wrong values,
+ * -Receive commands from display (like starting the day counter)
  *
  * TO DO Later:
  * -Add option to configure dark and light voltage levels LDR
@@ -140,7 +114,7 @@ update_display_date (void);
 /* USER CODE END 0 */
 
 int
-main (void)
+main(void)
 {
 
   /* USER CODE BEGIN 1 */
@@ -187,7 +161,7 @@ main (void)
 
   HAL_Delay (3000); //Delay to prevent CO2 sensor at startup from doing weird stuff. and make sure Nextion display is fully booted
 
-  configure_display_sleepmode (); //screensaver for display
+  nextionSleepAfter (30); //nextion display goes to sleep mode after 30 seconds
 
   /* USER CODE END 2 */
 
@@ -195,27 +169,27 @@ main (void)
   /* USER CODE BEGIN WHILE */
   while (1)
     {
-      uint32_t millis = HAL_GetTick (); //counter amount of milliseconds the program is running (created in systick isr)
-
-      ///Blink LED, Used to check if MCU isn't stuck in a long loop
-      //HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13); //LED toggle
-
-      if (millis - prevSensorUpdateDisplay >= intervalUpdateDisplaySensorData)
+      static uint32_t prevSensorUpdateDisplay = 0;
+      if (HAL_GetTick () - prevSensorUpdateDisplay >= intervalUpdateDisplaySensorData)
         { //update sensor data and display every second
-          prevSensorUpdateDisplay = millis;
+          prevSensorUpdateDisplay = HAL_GetTick ();
 
           HAL_GPIO_TogglePin (LED_GPIO_Port, LED_Pin); //LED toggle
 
-          update_display_light ();
-          update_display_airtemp ();
-          update_display_humidity ();
-          update_display_CO2 ();
-          update_display_date ();
+          uint8_t lightLevel = getLight ();
+          float airTemp = getAirtemp ();
+          uint8_t humidity = getHumidity ();
+          uint16_t co2 = getCO2 ();
 
-          sendCommand ();
+          nextionUpdateLightlevel (lightLevel);
+          nextionUpdateAirtemp (airTemp);
+          nextionUpdateHumidity (humidity);
+          nextionUpdateCO2 (co2);
+
+          sendToESP8266 (lightLevel, airTemp, humidity, co2);
         }
 
-      update_display_time (); //Updates the time on the display
+      nextionUpdateTime (); //Updates the time on the display
 
       /* USER CODE END WHILE */
 
@@ -228,15 +202,14 @@ main (void)
 /** System Clock Configuration
  */
 void
-SystemClock_Config (void)
+SystemClock_Config(void)
 {
 
   RCC_OscInitTypeDef RCC_OscInitStruct;
   RCC_ClkInitTypeDef RCC_ClkInitStruct;
   RCC_PeriphCLKInitTypeDef PeriphClkInit;
 
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE
-      | RCC_OSCILLATORTYPE_LSE;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE | RCC_OSCILLATORTYPE_LSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
   RCC_OscInitStruct.LSEState = RCC_LSE_ON;
@@ -248,8 +221,8 @@ SystemClock_Config (void)
       Error_Handler ();
     }
 
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
-      | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1
+      | RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
@@ -279,7 +252,7 @@ SystemClock_Config (void)
 
 /* ADC1 init function */
 static void
-MX_ADC1_Init (void)
+MX_ADC1_Init(void)
 {
 
   ADC_ChannelConfTypeDef sConfig;
@@ -312,7 +285,7 @@ MX_ADC1_Init (void)
 
 /* I2C1 init function */
 static void
-MX_I2C1_Init (void)
+MX_I2C1_Init(void)
 {
 
   hi2c1.Instance = I2C1;
@@ -333,7 +306,7 @@ MX_I2C1_Init (void)
 
 /* RTC init function */
 static void
-MX_RTC_Init (void)
+MX_RTC_Init(void)
 {
 
   /**Initialize RTC and set the Time and Date 
@@ -350,7 +323,7 @@ MX_RTC_Init (void)
 
 /* USART1 init function */
 static void
-MX_USART1_UART_Init (void)
+MX_USART1_UART_Init(void)
 {
 
   huart1.Instance = USART1;
@@ -370,7 +343,7 @@ MX_USART1_UART_Init (void)
 
 /* USART2 init function */
 static void
-MX_USART2_UART_Init (void)
+MX_USART2_UART_Init(void)
 {
 
   huart2.Instance = USART2;
@@ -390,7 +363,7 @@ MX_USART2_UART_Init (void)
 
 /* USART3 init function */
 static void
-MX_USART3_UART_Init (void)
+MX_USART3_UART_Init(void)
 {
 
   huart3.Instance = USART3;
@@ -416,7 +389,7 @@ MX_USART3_UART_Init (void)
  * EXTI
  */
 static void
-MX_GPIO_Init (void)
+MX_GPIO_Init(void)
 {
 
   GPIO_InitTypeDef GPIO_InitStruct;
@@ -431,8 +404,7 @@ MX_GPIO_Init (void)
   HAL_GPIO_WritePin (LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin (GPIOA, ESP8266_RST_Pin | ESP8266_NRST_Pin | WaterTemp_Pin,
-                     GPIO_PIN_RESET);
+  HAL_GPIO_WritePin (GPIOA, ESP8266_RST_Pin | ESP8266_NRST_Pin | WaterTemp_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : LED_Pin */
   GPIO_InitStruct.Pin = LED_Pin;
@@ -456,7 +428,7 @@ MX_GPIO_Init (void)
 
 /* USER CODE BEGIN 4 */
 int
-map (int x, int in_min, int in_max, int out_min, int out_max)
+map(int x, int in_min, int in_max, int out_min, int out_max)
 {
   if (x < in_min)
     return out_min;
@@ -466,125 +438,13 @@ map (int x, int in_min, int in_max, int out_min, int out_max)
 }
 
 int
-get_light ()
+getLight()
 {
   HAL_ADC_Start (&hadc1);
   HAL_ADC_PollForConversion (&hadc1, 1000);
   uint32_t ldr = HAL_ADC_GetValue (&hadc1);
   HAL_ADC_Stop (&hadc1);
   return map (ldr, 300, 3500, 0, 100);
-}
-
-void
-update_display_light ()
-{
-  char buffer[40]; //stores string to be send
-
-  int ldr = get_light (); //get sensor data
-
-  sprintf (buffer, "t2.txt=\"%d %%\"ÿÿÿ", ldr);
-  int len = strlen (buffer);
-  HAL_UART_Transmit (&huart3, (uint8_t *) buffer, len, 500); //Send commands to nextion display
-}
-
-void
-update_display_airtemp ()
-{
-  char buffer[40]; //stores string to be send
-
-  float airtemp = get_airtemp (); //get sensor data
-
-  sprintf (buffer, "t3.txt=\"%.1f C\"ÿÿÿ", airtemp);
-  int len = strlen (buffer);
-  HAL_UART_Transmit (&huart3, (uint8_t *) buffer, len, 500); //Send commands to nextion display
-}
-
-void
-update_display_humidity ()
-{
-  char buffer[40]; //stores string to be send
-
-  int humidity = get_humidity (); //get sensor data
-
-  sprintf (buffer, "t4.txt=\"%d %%\"ÿÿÿ", humidity);
-  int len = strlen (buffer);
-  HAL_UART_Transmit (&huart3, (uint8_t *) buffer, len, 500); //Send commands to nextion display
-}
-
-void
-update_display_CO2 ()
-{
-  char buffer[40]; //stores string to be send
-
-  if (CO2Ready == false && HAL_GetTick () > CO2SensorStartupTime)
-    { //check if CO2 sensor is ready
-      CO2Ready = true;
-    }
-
-  if (CO2Ready == false)
-    {
-      sprintf (buffer, "t5.txt=\"warmup\"ÿÿÿ");
-    }
-  else
-    {
-      int CO2 = get_CO2 (); //get sensor data
-      sprintf (buffer, "t5.txt=\"%d ppm\"ÿÿÿ", CO2);
-    }
-
-  int len = strlen (buffer);
-  HAL_UART_Transmit (&huart3, (uint8_t *) buffer, len, 500); //Send commands to nextion display
-}
-
-void
-update_display_time ()
-{
-  RTC_TimeTypeDef currentTime; //store time returned from the RTC
-  HAL_RTC_GetTime (&hrtc, &currentTime, RTC_FORMAT_BIN); //get time from RTC and store in above variable
-
-  char buffer[40]; //stores string to be send
-
-  if (currentTime.Seconds % 2 == 0) //display : when seconds are even
-    {
-//      sprintf (buffer, "t0.txt=\"%02d:%02d\"ÿÿÿ", currentTime.Hours,
-//               currentTime.Minutes); // %02d is format printf so the minutes always consists of two numbers starting with zero's
-      sprintf (buffer, "t0.txt=\"%02d:%02d:%02d\"ÿÿÿ", currentTime.Hours,
-               currentTime.Minutes, currentTime.Seconds);
-    }
-  else
-    {
-//      sprintf (buffer, "t0.txt=\"%02d %02d\"ÿÿÿ", currentTime.Hours,
-//               currentTime.Minutes);
-      sprintf (buffer, "t0.txt=\"%02d %02d:%02d\"ÿÿÿ", currentTime.Hours,
-               currentTime.Minutes, currentTime.Seconds);
-    }
-
-  int len = strlen (buffer);
-  HAL_UART_Transmit (&huart3, (uint8_t *) buffer, len, 1000); //Send commands to nextion display
-}
-
-void
-update_display_date ()
-{
-  //RTC_DateTypeDef currentDate; //store date returned from the RTC
-  //HAL_RTC_GetDate(&hrtc, &currentDate, RTC_FORMAT_BIN); //get time from RTC and store in above variable
-  static int dayCounter = 1;
-
-  char buffer[40]; //stores string to be send
-
-  sprintf (buffer, "t1.txt=\"Day: %d\"ÿÿÿ", dayCounter);
-
-  int len = strlen (buffer);
-  HAL_UART_Transmit (&huart3, (uint8_t *) buffer, len, 1000); //Send commands to nextion display
-}
-
-void
-configure_display_sleepmode ()
-{
-  char buffer[40]; //stores string to be send
-
-  sprintf (buffer, "thsp=30ÿÿÿthup=1ÿÿÿ"); //thsp=30(No touch operation within 30 seconds, it will auto enter into sleep mode).
-  int len = strlen (buffer);
-  HAL_UART_Transmit (&huart3, (uint8_t *) buffer, len, 1000); //Send commands to nextion display
 }
 
 /* USER CODE END 4 */
@@ -595,7 +455,7 @@ configure_display_sleepmode ()
  * @retval None
  */
 void
-Error_Handler (void)
+Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler */
   /* User can add his own implementation to report the HAL error return state */
