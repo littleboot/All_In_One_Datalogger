@@ -49,8 +49,8 @@
 #define CO2_Sens_TX_GPIO_Port GPIOA
 #define CO2_sens_RX_Pin GPIO_PIN_3
 #define CO2_sens_RX_GPIO_Port GPIOA
-#define ESP8266_CS_Pin GPIO_PIN_4
-#define ESP8266_CS_GPIO_Port GPIOA
+#define ESP8266_RST_Pin GPIO_PIN_4
+#define ESP8266_RST_GPIO_Port GPIOA
 #define Display_TX_Pin GPIO_PIN_10
 #define Display_TX_GPIO_Port GPIOB
 #define Display_RX_Pin GPIO_PIN_11

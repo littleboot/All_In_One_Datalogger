@@ -1,0 +1,88 @@
+/*
+  updates UART received data from STM32F1 to thinsspeak.
+
+
+  TO:DO
+  -Add CRC 
+  -Send ACK to STM32F1
+  -Add configuration message response: to configure SSID; Pass; ChannelNumber; myWritekey.
+  -Add message response to get the Time From the internet and send it back to the STM32F1
+ 
+  Optional:
+  -Get ESP8266 to program the STM32F over the air. (set bootloader pins and reset STM32F1 and program over UART)
+
+*/
+
+#include "ThingSpeak.h"
+#include <ESP8266WiFi.h>
+
+#define bufferSize 11 //bufferSize in bytes
+
+char ssid[] = "13A1-online3";    //  your network SSID (name) 
+char pass[] = "kutpolen";   // your network password
+int status = WL_IDLE_STATUS;
+WiFiClient  client;
+
+/*
+  *****************************************************************************************
+  **** Visit https://www.thingspeak.com to sign up for a free account and create
+  **** a channel.  The video tutorial http://community.thingspeak.com/tutorials/thingspeak-channels/
+  **** has more information. You need to change this to your channel, and your write API key
+  **** IF YOU SHARE YOUR CODE WITH OTHERS, MAKE SURE YOU REMOVE YOUR WRITE API KEY!!
+  *****************************************************************************************/
+unsigned long myChannelNumber = 113979;
+char * myWriteAPIKey = "DDACRDYIJWVA15Z3";
+
+void setup() {
+	WiFi.begin(ssid, pass);
+	ThingSpeak.begin(client);
+
+	Serial.begin(115200);
+	Serial.swap(); //swaps serial pins to  GPIO15=D8 (TX) and GPIO13=D7 (RX)
+}
+
+/* messageBuffer[bufferSize]
+
+      +------+------------+---------+----------+-----+-----------+----+----+-----+
+	  |Start | LightLevel | AirTemp | Humidity | CO2 | WaterTemp | PH | EC | CRC |
+	  +------+------------+---------+----------+-----+-----------+----+----+-----+
+Byte: | 0-2  |     3      |    4    |    5     | 6-7 |    8      |  9 | 10 | 11  |  
+
+start == 0xFF 0xFF 0xFF
+*/
+uint8_t messageBuffer[bufferSize] = {};
+
+void loop() {
+
+	if (Serial.available() > 0) { //When there is som data inside the RX UART buffer
+		///make room in buffer for new element
+		uint8_t i = 0;
+		for (i = 1; i < bufferSize; i++) {
+			messageBuffer[i] = messageBuffer[i - 1];
+		}
+		messageBuffer[bufferSize-1] = Serial.read(); //store new byte in last position of the buffer
+		
+		///Check for start of message, indication that a full message has been received
+		if ((messageBuffer[0] == 0xFF) && (messageBuffer[1] == 0xFF) && (messageBuffer[2] == 0xFF)) {
+			// TO:DO Add CRC checking here
+
+			///Extract data from messageBuffer
+			uint8_t lightLevel = messageBuffer[3];
+			uint8_t airTemp = messageBuffer[4];
+			uint8_t humidity = messageBuffer[5];
+			uint16_t co2 = ( ((uint16_t)messageBuffer[6] << 8) | ((uint16_t)messageBuffer[7]) );//combine and store 2 bytes as 16bit number
+			uint8_t waterTemp = messageBuffer[8];
+			uint8_t ph = messageBuffer[9]; 
+			uint8_t ec = messageBuffer[10];
+
+			ThingSpeak.setField(1, lightLevel);
+			ThingSpeak.setField(2, airTemp);
+			ThingSpeak.setField(3, humidity);
+			ThingSpeak.setField(4, co2);
+			ThingSpeak.setField(5, waterTemp);
+			ThingSpeak.setField(6, ph);
+			ThingSpeak.setField(7, ec);
+			ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);  // Write the fields at once. NOTE: Thingspeak write interval must be >15 sec.
+		}
+	}
+}

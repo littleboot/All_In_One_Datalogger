@@ -40,7 +40,7 @@
 									<listOptionValue builtIn="false" value="C:/Users/Tom/Documents/GitHub/All_In_One_Datalogger/Firmware/AllInOneLogger_V1/AllInOneLogger_V1/Drivers/CMSIS/Device/ST/STM32F1xx/Include" />
 									<listOptionValue builtIn="false" value="C:/Users/Tom/Documents/GitHub/All_In_One_Datalogger/Firmware/AllInOneLogger_V1/AllInOneLogger_V1/Debug" />
 									<listOptionValue builtIn="false" value="../Inc" />
-								<listOptionValue builtIn="false" value="../Drivers/STM32F1xx_HAL_Driver/Inc" /></option>
+								<listOptionValue builtIn="false" value="../Drivers/STM32F1xx_HAL_Driver/Inc" /><listOptionValue builtIn="false" value="../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy" /><listOptionValue builtIn="false" value="../Drivers/CMSIS/Include" /></option>
 								<option id="gnu.c.compiler.option.preprocessor.def.symbols.595936514" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="__weak=&quot;__attribute__((weak))&quot;" />
 									<listOptionValue builtIn="false" value="__packed=&quot;__attribute__((__packed__))&quot;" />

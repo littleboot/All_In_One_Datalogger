@@ -40,6 +40,7 @@
 #include <stdbool.h>
 #include "si7021.h"
 #include "MHZ19.h"
+#include "ESP8266.h"
 
 /* USER CODE END Includes */
 
@@ -49,8 +50,6 @@ ADC_HandleTypeDef hadc1;
 I2C_HandleTypeDef hi2c1;
 
 RTC_HandleTypeDef hrtc;
-
-SPI_HandleTypeDef hspi1;
 
 UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
@@ -79,8 +78,6 @@ static void
 MX_I2C1_Init (void);
 static void
 MX_RTC_Init (void);
-static void
-MX_SPI1_Init (void);
 static void
 MX_USART1_UART_Init (void);
 static void
@@ -137,8 +134,8 @@ update_display_date (void);
  * -increase clock speed (if necessary)
  *
  * Bugs:
- * -Date not saved after power off like the time
- * -When I2C is busy and SDA is disconnected and reconnected. transmit and receive I2c functions return HAL_TIMEOUT and do nothing else. Need debugger to fix this
+ * -CubeMX generated code sets RTC time, Every time code is generated it needs a manual fix
+ * -When I2C is busy and SDA is disconnected and reconnected. transmit and receive I2c functions return HAL_TIMEOUT and do nothing else.
  */
 /* USER CODE END 0 */
 
@@ -163,24 +160,23 @@ main (void)
   MX_ADC1_Init ();
   MX_I2C1_Init ();
   MX_RTC_Init ();
-  MX_SPI1_Init ();
   MX_USART1_UART_Init ();
   MX_USART2_UART_Init ();
   MX_USART3_UART_Init ();
 
   /* USER CODE BEGIN 2 */
-  if (HAL_RTCEx_BKUPRead (&hrtc, 0x01) != 0x01)
+  if (HAL_RTCEx_BKUPRead (&hrtc, 0x01) != 0x01) //checks if RTC time has been set before, If this is the case, skip set time
     { //time has not been set
       ///Configure RTC manually
       RTC_DateTypeDef date; //stores date to be configured
       RTC_TimeTypeDef time; //stores time to be configured
 
-      time.Hours = 22;
-      time.Minutes = 13;
+      time.Hours = 17;
+      time.Minutes = 34;
       time.Seconds = 0;
-      date.WeekDay = RTC_WEEKDAY_SUNDAY;
-      date.Date = 31;
-      date.Month = RTC_MONTH_JULY;
+      date.WeekDay = RTC_WEEKDAY_SATURDAY;
+      date.Date = 17;
+      date.Month = RTC_MONTH_SEPTEMBER;
       date.Year = 16;
 
       HAL_RTC_SetTime (&hrtc, &time, RTC_FORMAT_BIN);
@@ -215,6 +211,8 @@ main (void)
           update_display_humidity ();
           update_display_CO2 ();
           update_display_date ();
+
+          sendCommand ();
         }
 
       update_display_time (); //Updates the time on the display
@@ -338,58 +336,12 @@ static void
 MX_RTC_Init (void)
 {
 
-  RTC_TimeTypeDef sTime;
-  RTC_DateTypeDef DateToUpdate;
-
   /**Initialize RTC and set the Time and Date 
    */
   hrtc.Instance = RTC;
   hrtc.Init.AsynchPrediv = RTC_AUTO_1_SECOND;
   hrtc.Init.OutPut = RTC_OUTPUTSOURCE_NONE;
   if (HAL_RTC_Init (&hrtc) != HAL_OK)
-    {
-      Error_Handler ();
-    }
-
-  sTime.Hours = 0x1;
-  sTime.Minutes = 0x0;
-  sTime.Seconds = 0x0;
-
-  if (HAL_RTC_SetTime (&hrtc, &sTime, RTC_FORMAT_BCD) != HAL_OK)
-    {
-      Error_Handler ();
-    }
-
-  DateToUpdate.WeekDay = RTC_WEEKDAY_MONDAY;
-  DateToUpdate.Month = RTC_MONTH_JANUARY;
-  DateToUpdate.Date = 0x1;
-  DateToUpdate.Year = 0x0;
-
-  if (HAL_RTC_SetDate (&hrtc, &DateToUpdate, RTC_FORMAT_BCD) != HAL_OK)
-    {
-      Error_Handler ();
-    }
-
-}
-
-/* SPI1 init function */
-static void
-MX_SPI1_Init (void)
-{
-
-  hspi1.Instance = SPI1;
-  hspi1.Init.Mode = SPI_MODE_MASTER;
-  hspi1.Init.Direction = SPI_DIRECTION_2LINES;
-  hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
-  hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
-  hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
-  hspi1.Init.NSS = SPI_NSS_SOFT;
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;
-  hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
-  hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
-  hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
-  hspi1.Init.CRCPolynomial = 10;
-  if (HAL_SPI_Init (&hspi1) != HAL_OK)
     {
       Error_Handler ();
     }
@@ -479,7 +431,7 @@ MX_GPIO_Init (void)
   HAL_GPIO_WritePin (LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin (GPIOA, ESP8266_CS_Pin | ESP8266_NRST_Pin | WaterTemp_Pin,
+  HAL_GPIO_WritePin (GPIOA, ESP8266_RST_Pin | ESP8266_NRST_Pin | WaterTemp_Pin,
                      GPIO_PIN_RESET);
 
   /*Configure GPIO pin : LED_Pin */
@@ -488,8 +440,14 @@ MX_GPIO_Init (void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init (LED_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : ESP8266_CS_Pin ESP8266_NRST_Pin WaterTemp_Pin */
-  GPIO_InitStruct.Pin = ESP8266_CS_Pin | ESP8266_NRST_Pin | WaterTemp_Pin;
+  /*Configure GPIO pin : ESP8266_RST_Pin */
+  GPIO_InitStruct.Pin = ESP8266_RST_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+  HAL_GPIO_Init (ESP8266_RST_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : ESP8266_NRST_Pin WaterTemp_Pin */
+  GPIO_InitStruct.Pin = ESP8266_NRST_Pin | WaterTemp_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init (GPIOA, &GPIO_InitStruct);
@@ -587,13 +545,17 @@ update_display_time ()
 
   if (currentTime.Seconds % 2 == 0) //display : when seconds are even
     {
-      sprintf (buffer, "t0.txt=\"%02d:%02d\"ÿÿÿ", currentTime.Hours,
-               currentTime.Minutes); // %02d is format printf so the minutes always consists of two numbers starting with zero's
+//      sprintf (buffer, "t0.txt=\"%02d:%02d\"ÿÿÿ", currentTime.Hours,
+//               currentTime.Minutes); // %02d is format printf so the minutes always consists of two numbers starting with zero's
+      sprintf (buffer, "t0.txt=\"%02d:%02d:%02d\"ÿÿÿ", currentTime.Hours,
+               currentTime.Minutes, currentTime.Seconds);
     }
   else
     {
-      sprintf (buffer, "t0.txt=\"%02d %02d\"ÿÿÿ", currentTime.Hours,
-               currentTime.Minutes);
+//      sprintf (buffer, "t0.txt=\"%02d %02d\"ÿÿÿ", currentTime.Hours,
+//               currentTime.Minutes);
+      sprintf (buffer, "t0.txt=\"%02d %02d:%02d\"ÿÿÿ", currentTime.Hours,
+               currentTime.Minutes, currentTime.Seconds);
     }
 
   int len = strlen (buffer);
