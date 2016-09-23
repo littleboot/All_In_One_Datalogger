@@ -3,7 +3,10 @@
 
 
   TO:DO
-  Change message structure. after start byte a commandTypeByte
+  *Change message structure. after start byte a commandTypeByte, to enable cofiguration commands ect...
+  *Change message to enable floats 
+  *Write thingspeak library, instead of the included one to support floats. or find a solution
+  *ESP8266 also visible as hotspot. disable this
 
   -Add CRC 
   -Send ACK to STM32F1

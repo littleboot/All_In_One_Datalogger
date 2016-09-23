@@ -97,8 +97,11 @@ getLight(void);
 /* USER CODE BEGIN 0 */
 /**
  * TO DO:
+ * -add cmd byte to ESP8266 message structure
+ * -Move update interval settings to STM32 instead of ESP8266
+ * -Divide floating point numbers to a integer-part and fractional-part
  * -Save and recall variables from RTC BKP Like thingsspeak channel key
- * -Add fucntion that gets temp from previous humidity measurement to speed up the code
+ * -Add function that gets temp from previous humidity measurement to speed up the code
  * -Receive commands from display (like starting the day counter)
  *
  * TO DO Later:
@@ -110,6 +113,8 @@ getLight(void);
  * Bugs:
  * -CubeMX generated code sets RTC time, Every time code is generated it needs a manual fix
  * -When I2C is busy and SDA is disconnected and reconnected. transmit and receive I2c functions return HAL_TIMEOUT and do nothing else.
+ * -UART mismatch CO2 level wrong 3334 ppm or something doesn't change, check with logic analyser if data is transmitted correctly. (fault probably in MCU because reset fixes it)
+ * -
  */
 /* USER CODE END 0 */
 
