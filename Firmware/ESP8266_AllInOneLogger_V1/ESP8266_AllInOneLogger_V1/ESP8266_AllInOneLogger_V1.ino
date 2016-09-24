@@ -31,7 +31,7 @@ WiFiClient  client;
 unsigned long myChannelNumber = 113979;
 char * myWriteAPIKey = "DDACRDYIJWVA15Z3";
 
-
+uint8_t getCheckSum(uint8_t * packet);
 void updateDataThingspeak(uint8_t * messageBuffer);
 
 
@@ -58,17 +58,17 @@ void loop() {
 		
 		///Check for start of message, indication that a full message has been received
 		if ((messageBuffer[0] == 0xFF) && (messageBuffer[1] == 0xFF) && (messageBuffer[2] == 0xFF)) {
-			// TO:DO Add CRC checking here
-
-			switch (messageBuffer[3]) //check cmd
-			{
-			case 0x00: //Thingsspeak data update
-				updateDataThingspeak(messageBuffer);
-				break;
-			default:
-				break;
+			//CRC checking here
+			if (getCheckSum(messageBuffer) == messageBuffer[12]) { //message is correct
+				switch (messageBuffer[3]) //check cmd
+				{
+				case 0x00: //Thingsspeak data update
+					updateDataThingspeak(messageBuffer);
+					break;
+				default:
+					break;
+				}
 			}
-			
 		}
 	}
 }
@@ -110,4 +110,20 @@ void updateDataThingspeak(uint8_t * messageBuffer)
 		ThingSpeak.setField(7, ec);
 		ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);  // Write the fields at once. NOTE! Thingspeak write interval must be >15 sec.
 	}
+}
+
+uint8_t
+getCheckSum(uint8_t * packet)
+{
+	/* The checksum = (invert (byte 3 +... + 11)) + 1 */
+	uint8_t i;
+	uint8_t checksum = 0;
+
+	for (i = 3; i < 12; i++)
+	{
+		checksum += packet[i];
+	}
+	checksum = (0xff - checksum);
+	checksum += 1;
+	return checksum;
 }

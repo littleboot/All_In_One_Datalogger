@@ -10,6 +10,22 @@
 #include <stdint.h>
 #include "ESP8266.h"
 
+static uint8_t
+getCheckSum(uint8_t * packet)
+{
+  /* The checksum = (invert (byte 3 +... + 11)) + 1 */
+  uint8_t i;
+  uint8_t checksum = 0;
+
+  for (i = 3; i < 12; i++)
+    {
+      checksum += packet[i];
+    }
+  checksum = (0xff - checksum);
+  checksum += 1;
+  return checksum;
+}
+
 /* messageBuffer[bufferSize]
 
  Thingsspeak data update cmd 0x00
@@ -21,7 +37,6 @@
 
 
  */
-
 void
 sendToESP8266(uint8_t lightLevel, float airtemp, uint8_t humidity, uint16_t co2)
 {
@@ -31,6 +46,7 @@ sendToESP8266(uint8_t lightLevel, float airtemp, uint8_t humidity, uint16_t co2)
 
   uint8_t message[13] =
     { 0xFF, 0xFF, 0xFF, 0x00, lightLevel, temp, humidity, msbCo2, lsbCo2, 0, 0, 0, 0 }; //Starting byte fixed; sensor no.; Get gas concentration cmd; ; ; ; ; ; ;check value;
+  message[12] = getCheckSum (message);
 
   HAL_UART_Transmit (&huart1, message, 13, UART1Timeout);
 

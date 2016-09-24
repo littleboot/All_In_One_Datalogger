@@ -9,10 +9,13 @@
 #include <stdint.h>
 #include "MHZ19.h"
 
-uint8_t
-getCheckSum(uint8_t *packet)
+static uint8_t
+getCheckSum(uint8_t * packet)
 {
-  uint8_t i, checksum;
+  /* The checksum = (invert (byte 1 +... + 7)) + 1 */
+  uint8_t i;
+  uint8_t checksum = 0;
+
   for (i = 1; i < 8; i++)
     {
       checksum += packet[i];
@@ -32,10 +35,9 @@ getCO2(void)
   HAL_UART_Transmit (&huart2, cmd, 9, UART2Timeout); //Send commands to MHZ-19 Co2 sensor
   HAL_UART_Receive (&huart2, response, 9, UART2Timeout); //save response to response buffer
 
-//  uint8_t crc1 = getCheckSum (&response);
-//  uint32_t crc = response[8];
-//  if (crc != crc1)
-//    return 0;
+  //CRC
+  if (getCheckSum (response) != response[8])
+    return 0;
 
   uint32_t responseHigh = (uint32_t) response[2];
   uint32_t responseLow = (uint32_t) response[3];
