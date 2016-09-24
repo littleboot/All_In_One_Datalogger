@@ -8,7 +8,6 @@
 #ifndef ESP8266_H_
 #define ESP8266_H_
 
-#define cmdSize 12
 #define UART1Timeout 100
 
 extern UART_HandleTypeDef huart1;

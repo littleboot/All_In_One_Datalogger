@@ -12,12 +12,14 @@
 
 /* messageBuffer[bufferSize]
 
- +------+------------+---------+----------+-----+-----------+----+----+-----+
- |Start | LightLevel | AirTemp | Humidity | CO2 | WaterTemp | PH | EC | CRC |
- +------+------------+---------+----------+-----+-----------+----+----+-----+
- | 0-2  |     3      |    4    |    5     | 6-7 |    8      |  9 | 10 | 11  |
+ Thingsspeak data update cmd 0x00
+ +---------------------------------------------------------------------------------+
+ |Start | cmd  | LightLevel | AirTemp | Humidity | CO2 | WaterTemp | PH | EC | CRC |
+ +---------------------------------------------------------------------------------+
+ | 0-2  |  3   |     4      |    5    |    6     | 7-8 |    9      | 10 | 11 | 12  |
+ +---------------------------------------------------------------------------------+
 
- start == 0xFF 0xFF 0xFF
+
  */
 
 void
@@ -27,10 +29,10 @@ sendToESP8266(uint8_t lightLevel, float airtemp, uint8_t humidity, uint16_t co2)
   uint8_t msbCo2 = (uint8_t) (co2 >> 8);
   uint8_t lsbCo2 = (uint8_t) (co2 & 0x00FF);
 
-  uint8_t cmd[cmdSize] =
-    { 0xFF, 0xFF, 0xFF, lightLevel, temp, humidity, msbCo2, lsbCo2, 0, 0, 0, 0 }; //Starting byte fixed; sensor no.; Get gas concentration cmd; ; ; ; ; ; ;check value;
+  uint8_t message[13] =
+    { 0xFF, 0xFF, 0xFF, 0x00, lightLevel, temp, humidity, msbCo2, lsbCo2, 0, 0, 0, 0 }; //Starting byte fixed; sensor no.; Get gas concentration cmd; ; ; ; ; ; ;check value;
 
-  HAL_UART_Transmit (&huart1, cmd, cmdSize, UART1Timeout);
+  HAL_UART_Transmit (&huart1, message, 13, UART1Timeout);
 
   //TO:DO wait for ACK
 }

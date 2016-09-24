@@ -21,22 +21,19 @@
 #include "ThingSpeak.h"
 #include <ESP8266WiFi.h>
 
-#define bufferSize 12 //bufferSize in bytes
+#define bufferSize 13 //bufferSize in bytes
 
 char ssid[] = "13A1-online3";    //  your network SSID (name) 
 char pass[] = "kutpolen";   // your network password
 int status = WL_IDLE_STATUS;
 WiFiClient  client;
 
-/*
-  *****************************************************************************************
-  **** Visit https://www.thingspeak.com to sign up for a free account and create
-  **** a channel.  The video tutorial http://community.thingspeak.com/tutorials/thingspeak-channels/
-  **** has more information. You need to change this to your channel, and your write API key
-  **** IF YOU SHARE YOUR CODE WITH OTHERS, MAKE SURE YOU REMOVE YOUR WRITE API KEY!!
-  *****************************************************************************************/
 unsigned long myChannelNumber = 113979;
 char * myWriteAPIKey = "DDACRDYIJWVA15Z3";
+
+
+void updateDataThingspeak(uint8_t * messageBuffer);
+
 
 void setup() {
 	WiFi.begin(ssid, pass);
@@ -46,15 +43,7 @@ void setup() {
 	Serial.swap(); //swaps serial pins to  GPIO15=D8 (TX) and GPIO13=D7 (RX)
 }
 
-/* messageBuffer[bufferSize]
 
-      +------+------------+---------+----------+-----+-----------+----+----+-----+
-	  |Start | LightLevel | AirTemp | Humidity | CO2 | WaterTemp | PH | EC | CRC |
-	  +------+------------+---------+----------+-----+-----------+----+----+-----+
-Byte: | 0-2  |     3      |    4    |    5     | 6-7 |    8      |  9 | 10 | 11  |  
-
-start == 0xFF 0xFF 0xFF
-*/
 uint8_t messageBuffer[bufferSize] = {};
 
 void loop() {
@@ -71,32 +60,54 @@ void loop() {
 		if ((messageBuffer[0] == 0xFF) && (messageBuffer[1] == 0xFF) && (messageBuffer[2] == 0xFF)) {
 			// TO:DO Add CRC checking here
 
-			///Extract data from messageBuffer
-			uint8_t lightLevel = messageBuffer[3];
-			uint8_t airTemp = messageBuffer[4];
-			uint8_t humidity = messageBuffer[5];
-			uint16_t co2 = ( ((uint16_t)messageBuffer[6] << 8) | ((uint16_t)messageBuffer[7]) );//combine and store 2 bytes as 16bit number
-			uint8_t waterTemp = messageBuffer[8];
-			uint8_t ph = messageBuffer[9]; 
-			uint8_t ec = messageBuffer[10];
-
-
-			unsigned long currentMillis = millis();
-			static unsigned long prevMillis = 0;
-
-			if ((currentMillis - prevMillis) > 20000) { //minimum update interval is 20 sec
-				prevMillis = currentMillis;
-
-				//TO DO: only set fields thatare active, use new byte for this
-				ThingSpeak.setField(1, lightLevel);
-				ThingSpeak.setField(2, airTemp);
-				ThingSpeak.setField(3, humidity);
-				ThingSpeak.setField(4, co2);
-				ThingSpeak.setField(5, waterTemp);
-				ThingSpeak.setField(6, ph);
-				ThingSpeak.setField(7, ec);
-				ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);  // Write the fields at once. NOTE! Thingspeak write interval must be >15 sec.
-			}	
+			switch (messageBuffer[3]) //check cmd
+			{
+			case 0x00: //Thingsspeak data update
+				updateDataThingspeak(messageBuffer);
+				break;
+			default:
+				break;
+			}
+			
 		}
+	}
+}
+
+/* Thingsspeak data update cmd 0x00
+
++---------------------------------------------------------------------------------+
+|Start | cmd  | LightLevel | AirTemp | Humidity | CO2 | WaterTemp | PH | EC | CRC |
++---------------------------------------------------------------------------------+
+| 0-2  |  3   |     4      |    5    |    6     | 7-8 |    9      | 10 | 11 | 12  |
++---------------------------------------------------------------------------------+
+
+*/
+void updateDataThingspeak(uint8_t * messageBuffer)
+{
+	///Extract data from messageBuffer
+	uint8_t lightLevel = messageBuffer[4];
+	uint8_t airTemp = messageBuffer[5];
+	uint8_t humidity = messageBuffer[6];
+	uint16_t co2 = (((uint16_t)messageBuffer[7] << 8) | ((uint16_t)messageBuffer[8]));//combine and store 2 bytes as 16bit number
+	uint8_t waterTemp = messageBuffer[9];
+	uint8_t ph = messageBuffer[10];
+	uint8_t ec = messageBuffer[11];
+
+
+	unsigned long currentMillis = millis();
+	static unsigned long prevMillis = 0;
+
+	if ((currentMillis - prevMillis) > 20000) { //minimum update interval is 20 sec
+		prevMillis = currentMillis;
+
+		//TO DO: only set fields thatare active, use new byte for this
+		ThingSpeak.setField(1, lightLevel);
+		ThingSpeak.setField(2, airTemp);
+		ThingSpeak.setField(3, humidity);
+		ThingSpeak.setField(4, co2);
+		ThingSpeak.setField(5, waterTemp);
+		ThingSpeak.setField(6, ph);
+		ThingSpeak.setField(7, ec);
+		ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);  // Write the fields at once. NOTE! Thingspeak write interval must be >15 sec.
 	}
 }
