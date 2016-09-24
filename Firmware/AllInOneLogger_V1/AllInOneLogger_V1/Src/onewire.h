@@ -8,7 +8,4 @@
 #ifndef ONEWIRE_H_
 #define ONEWIRE_H_
 
-#define onewirePort GPIOA
-#define onewirePin GPIO_PIN_12
-
 #endif /* ONEWIRE_H_ */

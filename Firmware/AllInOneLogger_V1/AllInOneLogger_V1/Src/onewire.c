@@ -9,8 +9,20 @@
 #include <stdint.h>
 #include "onewire.h"
 
+/*
+ * For one wire to function a micro second delay function is needed
+ * NOP could be used to delay
+ *
+ * else use a timer:
+ * 72Mhz results in 0.01388 us
+ * else timer + ISR should be used. don't leave timer running
+ *
+ * Other way is using the systick current value register
+ * http://micromouseusa.com/?p=296
+ */
+
 uint8_t
-TM_OneWire_Reset ()
+TM_OneWire_Reset()
 {
   uint8_t i = 0;
 

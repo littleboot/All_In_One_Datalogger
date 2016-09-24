@@ -59,7 +59,7 @@ void loop() {
 		///Check for start of message, indication that a full message has been received
 		if ((messageBuffer[0] == 0xFF) && (messageBuffer[1] == 0xFF) && (messageBuffer[2] == 0xFF)) {
 			//CRC checking here
-			if (getCheckSum(messageBuffer) == messageBuffer[12]) { //message is correct
+			if (getCheckSum(messageBuffer) == messageBuffer[12]) { //message is correctly received
 				switch (messageBuffer[3]) //check cmd
 				{
 				case 0x00: //Thingsspeak data update
