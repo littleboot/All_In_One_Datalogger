@@ -12,6 +12,8 @@
 
 extern UART_HandleTypeDef huart2;
 
+uint8_t
+getCheckSum(uint8_t *packet);
 uint16_t
 getCO2(void);
 

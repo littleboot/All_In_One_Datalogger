@@ -21,7 +21,7 @@
 #include "ThingSpeak.h"
 #include <ESP8266WiFi.h>
 
-#define bufferSize 11 //bufferSize in bytes
+#define bufferSize 12 //bufferSize in bytes
 
 char ssid[] = "13A1-online3";    //  your network SSID (name) 
 char pass[] = "kutpolen";   // your network password
@@ -80,10 +80,11 @@ void loop() {
 			uint8_t ph = messageBuffer[9]; 
 			uint8_t ec = messageBuffer[10];
 
+
 			unsigned long currentMillis = millis();
 			static unsigned long prevMillis = 0;
 
-			if ((currentMillis - prevMillis) > 20000) { //every 20 sec
+			if ((currentMillis - prevMillis) > 20000) { //minimum update interval is 20 sec
 				prevMillis = currentMillis;
 
 				//TO DO: only set fields thatare active, use new byte for this

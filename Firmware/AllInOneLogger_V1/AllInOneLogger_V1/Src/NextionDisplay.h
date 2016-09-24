@@ -9,7 +9,7 @@
 #define NEXTIONDISPLAY_H_
 
 #define UART3Timeout 100 //timeout in ticks
-#define CO2SensorStartupTime (3*60*1000) //3min startuptime for CO2 sensor
+#define CO2SensorStartupTime 3 //(3*60*1000) //3min startuptime for CO2 sensor
 
 extern UART_HandleTypeDef huart3;
 extern RTC_HandleTypeDef hrtc;

@@ -52,7 +52,7 @@ nextionUpdateHumidity(uint8_t humidity)
 void
 nextionUpdateCO2(uint16_t co2)
 {
-  char buffer[40]; //stores string to be send
+  char buffer[50]; //stores string to be send
 
   if (HAL_GetTick () < CO2SensorStartupTime) //check if startuptime has passed
     sprintf (buffer, "t5.txt=\"warmup\"ÿÿÿ");

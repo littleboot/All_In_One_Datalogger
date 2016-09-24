@@ -58,8 +58,8 @@ UART_HandleTypeDef huart3;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-#define intervalUpdateDisplaySensorData 1000 //time in ms
-#define CO2SensorStartupTime 3*60*1000 //3min startuptime for CO2 sensor
+#define displayUpdateInterval 500 //0.5hz = 500ms
+#define espUpdateInterval 60000 //every minute = 60000ms
 
 bool CO2Ready = false;
 
@@ -174,27 +174,34 @@ main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
     {
-      static uint32_t prevSensorUpdateDisplay = 0;
-      if (HAL_GetTick () - prevSensorUpdateDisplay >= intervalUpdateDisplaySensorData)
+      ///update sensors data
+      uint8_t lightLevel = getLight ();
+      float airTemp = getAirtemp ();
+      uint8_t humidity = getHumidity ();
+      uint16_t co2 = getCO2 ();
+
+      static uint32_t prevDisplayUpdate = 0;
+      if (HAL_GetTick () - prevDisplayUpdate >= displayUpdateInterval)
         { //update sensor data and display every second
-          prevSensorUpdateDisplay = HAL_GetTick ();
+          prevDisplayUpdate = HAL_GetTick ();
 
           HAL_GPIO_TogglePin (LED_GPIO_Port, LED_Pin); //LED toggle
-
-          uint8_t lightLevel = getLight ();
-          float airTemp = getAirtemp ();
-          uint8_t humidity = getHumidity ();
-          uint16_t co2 = getCO2 ();
 
           nextionUpdateLightlevel (lightLevel);
           nextionUpdateAirtemp (airTemp);
           nextionUpdateHumidity (humidity);
           nextionUpdateCO2 (co2);
+          nextionUpdateTime (); //Updates the time on the display
+
+        }
+
+      static uint32_t prevESPUpdate = 0;
+      if (HAL_GetTick () - prevESPUpdate >= espUpdateInterval)
+        { //update wifi sensor data and display every minute
+          prevESPUpdate = HAL_GetTick ();
 
           sendToESP8266 (lightLevel, airTemp, humidity, co2);
         }
-
-      nextionUpdateTime (); //Updates the time on the display
 
       /* USER CODE END WHILE */
 
