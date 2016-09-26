@@ -174,10 +174,10 @@ main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
     {
-      ///update sensors data
+      /* update sensors data */
       uint8_t lightLevel = getLight ();
-      float airTemp = getAirtemp ();
-      uint8_t humidity = getHumidity ();
+      //float airTemp = getAirtemp ();
+      //uint8_t humidity = getHumidity ();
       uint16_t co2 = getCO2 ();
 
       static uint32_t prevDisplayUpdate = 0;
@@ -188,8 +188,8 @@ main(void)
           HAL_GPIO_TogglePin (LED_GPIO_Port, LED_Pin); //LED toggle
 
           nextionUpdateLightlevel (lightLevel);
-          nextionUpdateAirtemp (airTemp);
-          nextionUpdateHumidity (humidity);
+          //nextionUpdateAirtemp (airTemp);
+          //nextionUpdateHumidity (humidity);
           nextionUpdateCO2 (co2);
           nextionUpdateTime (); //Updates the time on the display
 
@@ -200,7 +200,7 @@ main(void)
         { //update wifi sensor data and display every minute
           prevESPUpdate = HAL_GetTick ();
 
-          sendToESP8266 (lightLevel, airTemp, humidity, co2);
+          //sendToESP8266 (lightLevel, airTemp, humidity, co2);
         }
 
       /* USER CODE END WHILE */

@@ -18,7 +18,7 @@ getAirtemp(void)
   uint8_t I2CDataReceived[2] =
     { };
 
-  HAL_I2C_Master_Transmit (&hi2c1, si7021_adress, &cmd, 1, 100); //this function takes a byte as input adress. because the adress in the datasheet is 0x40 (7-Bit) it needs to be shifted left by one
+  HAL_I2C_Master_Transmit (&hi2c1, si7021_adress, &cmd, 1, 500); //this function takes a byte as input adress. because the adress in the datasheet is 0x40 (7-Bit) it needs to be shifted left by one
   HAL_I2C_Master_Receive (&hi2c1, si7021_adress, I2CDataReceived, 2, 100);
   uint16_t tempCode = (uint16_t) I2CDataReceived[0] << 8 | (uint16_t) I2CDataReceived[1]; //convert the received MSB en LSB to one 16-bit word.
 
@@ -33,7 +33,7 @@ getHumidity(void)
   uint8_t I2CDataReceived[2] =
     { };
 
-  HAL_I2C_Master_Transmit (&hi2c1, si7021_adress, &cmd, 1, 100); //this function takes a byte as input adress. because the adress in the datasheet is 0x40 (7-Bit) it needs to be shifted left by one
+  HAL_I2C_Master_Transmit (&hi2c1, si7021_adress, &cmd, 1, 500); //this function takes a byte as input adress. because the adress in the datasheet is 0x40 (7-Bit) it needs to be shifted left by one
   HAL_I2C_Master_Receive (&hi2c1, si7021_adress, I2CDataReceived, 2, 100); //Note timeout is higher then the get_temp function
   uint16_t RHCode = (uint16_t) I2CDataReceived[0] << 8 | (uint16_t) I2CDataReceived[1]; //convert the received MSB en LSB to one 16-bit word.
 
